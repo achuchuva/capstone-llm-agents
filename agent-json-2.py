@@ -11,8 +11,7 @@ print(test_agent.test)
 print(test_agent.prompt)
 
 
-#llm_config = LLMConfig.from_json(path="config.json")#origonal
-llm_config = [{"api_type": "ollama", "model": "llama3.2"}]
+llm_config = LLMConfig.from_json(path="config.json")
 
 
 with llm_config:
