@@ -1,8 +1,18 @@
 from autogen import AssistantAgent, UserProxyAgent, LLMConfig
-from scheduling_agent import scheduling_agent
+class scheduling_agent:
+  def __init__(self, prompt):
+    self.prompt = prompt
+    self.test = "test"
+
+
+test_agent = scheduling_agent("this is the prompt")
+
+print(test_agent.test)
+print(test_agent.prompt)
+
 
 #llm_config = LLMConfig.from_json(path="config.json")#origonal
-llm_config = LLMConfig.from_json(path="config_two.json")#simpily better
+llm_config = [{"api_type": "ollama", "model": "llama3.2"}]
 
 
 with llm_config:
