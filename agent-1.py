@@ -21,11 +21,24 @@ travel_agent = ConversableAgent(
     system_message="""Extract travel details and return ONLY this JSON format:
     {
         "start": {"name": "start_location"},
-        "destination": {"name": "destination_location"}, 
+        "destination": {"name": "destination_location"},
         "time": "departure_time"
     }
     Return NOTHING else - no text or explanations just the raw JSON.""",
     description="Agent to extract travel start/destination/time from input",
+    llm_config={"config_list": config_list},
+)
+
+format_agent = ConversableAgent(
+    name="format_agent",
+    system_message="""Extract travel details from xx and create text file named travel_plan with this format:
+    {
+        Head to "start location" to begin your journey,
+        You will arive at "destination_location",
+        Your departure time is "departure_time"
+    }
+    Return NOTHING else - no text or explanations just the raw JSON.""",
+    description="Agent to format the travel plans from a raw JSON input",
     llm_config={"config_list": config_list},
 )
 
