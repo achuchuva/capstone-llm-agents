@@ -57,8 +57,16 @@ def travel_request(
 ) -> Request:
     return context
 
+@format_agent.register_for_llm(description="Format date and time for user")
+def format_agent(
+    input_text: str,
+    context: Annotated[Request, Depends(Request)]
+) -> Request:
+    return context
+
+
 groupchat = GroupChat(
-    agents=[user_proxy, travel_agent],
+    agents=[user_proxy, travel_agent, format_agent],
     messages=[],
     max_round=5
 )
