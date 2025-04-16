@@ -60,6 +60,11 @@ coordinator = ConversableAgent(
 )
 
 user_message = "I want to get to Richmond station by 10:30am from Pakenham Station"
+'''
+user_messages = {
+    
+}   add more stuff
+'''
 
 chat_results = coordinator.initiate_chats([
     {"recipient": trip_request_agent, "message": user_message, "max_turns": 1}
@@ -74,6 +79,6 @@ if travel_details:
         {"recipient": trip_response_agent, "message": travel_details, "max_turns": 1}
     ])
     if chat_results:
-        print("\n\nTravel Response:\n", chat_results[0].summary)
+        print(chat_results[0].summary)
 else:
     print("\n\nNo travel details available.")
