@@ -56,7 +56,7 @@ trip_response_agent = ConversableAgent(
         "destination": {"name": "destination_location"},
         "time_taken": "predicted_time_taken",
         "transport": "predicted_transport_mode"
-    }
+    } add the date and time here as well
     The time_taken should be a rough estimate of travel time, and the transport mode should be a relevant mode of transport in Melbourne (e.g., tram, train, bus, walking).
     Return NOTHING else - no text or explanations just the raw JSON.""",
     llm_config=llm_config,
@@ -82,8 +82,20 @@ manager = autogen.GroupChatManager(
     
 )
 
-chat_result = user_proxy_agent.initiate_chat(
-    manager,
-    message="Please ask the assistant to check my availability using the 'get_calendar' function  and suggest a single date where a trip can be planned and then send these to the travel agent to plan a trip",
+chat_results = user_proxy_agent.initiate_chats(
+    [
+        {
+            "recipient": assistant_agent,
+            "message": "Please check my availability using the 'get_calendar' function and suggest times where a trip can be planned",
+            "max_turns": 1,
+            "summary_method": "last_msg",
+        },
+        {
+            "recipient": trip_response_agent,
+            "message": "I want to get to Richmond station by 10:30am from Pakenham Station create a trip based on my availability",
+            "max_turns": 1, # One revision
+            "summary_method": "last_msg",
+        },   
+    ]
 )
 
