@@ -24,7 +24,9 @@ url = "https://api.open-meteo.com/v1/forecast"
 params = {
 	"latitude": -38.0702,
 	"longitude": 145.4741,
-	"hourly": "temperature_2m"
+	"hourly": ["temperature_2m", "precipitation_probability", "precipitation"],
+	"timezone": "Australia/Sydney",
+	"forecast_days": 2#can change to get a larger forcast range
 }
 responses = openmeteo.weather_api(url, params=params)
 
@@ -38,6 +40,8 @@ print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 # Process hourly data. The order of variables needs to be the same as requested.
 hourly = response.Hourly()
 hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+hourly_precipitation_probability = hourly.Variables(1).ValuesAsNumpy()
+hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
 
 hourly_data = {"date": pd.date_range(
 	start = pd.to_datetime(hourly.Time(), unit = "s", utc = True),
@@ -47,6 +51,8 @@ hourly_data = {"date": pd.date_range(
 )}
 
 hourly_data["temperature_2m"] = hourly_temperature_2m
+hourly_data["precipitation_probability"] = hourly_precipitation_probability
+hourly_data["precipitation"] = hourly_precipitation
 
 hourly_dataframe = pd.DataFrame(data = hourly_data)
 print(hourly_dataframe)
