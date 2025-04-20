@@ -26,7 +26,7 @@ params = {
 	"longitude": 145.4741,
 	"hourly": ["temperature_2m", "precipitation_probability", "precipitation"],
 	"timezone": "auto",
-	"forecast_days": 2#can change to get a larger forcast range
+	"forecast_days": 2#can change to get a larger forcast range or a date range
 }
 responses = openmeteo.weather_api(url, params=params)
 
