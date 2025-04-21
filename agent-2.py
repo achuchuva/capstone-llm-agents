@@ -27,11 +27,11 @@ def weather_calculation(lat, lon, date, time):#requires very spercific formattin
     params = {
         "latitude": lat,
         "longitude": lon,
-        "hourly": ["temperature_2m", "precipitation_probability", "precipitation"],
+        "hourly": ["temperature_2m", "precipitation_probability", "precipitation", "wind_speed_10m"],
         "timezone": "auto",
-        "forecast_days": 2#can change to get a larger forcast range or a date range. NOTE: i think using this is the best over date
-        #"start_date": "2025-04-21",#seems to strugle getting the correct date
-	    #"end_date": "2025-04-21"
+        #"forecast_days": 2#can change to get a larger forcast range or a date range. NOTE: i think using this is the best over date
+        "start_date": date,#seems to strugle getting the correct date
+	    "end_date": date
     }
     responses = openmeteo.weather_api(url, params=params)
 
@@ -47,6 +47,7 @@ def weather_calculation(lat, lon, date, time):#requires very spercific formattin
     hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
     hourly_precipitation_probability = hourly.Variables(1).ValuesAsNumpy()
     hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
+    hourly_wind_speed_10m = hourly.Variables(3).ValuesAsNumpy()
 
     hourly_data = {#https://github.com/open-meteo/open-meteo/issues/850 fix for timezone issue
         "date": pd.date_range(
@@ -63,19 +64,43 @@ def weather_calculation(lat, lon, date, time):#requires very spercific formattin
 
     hourly_data["temperature_2m"] = hourly_temperature_2m
     hourly_data["precipitation_probability"] = hourly_precipitation_probability
+    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
     hourly_data["precipitation"] = hourly_precipitation
 
     hourly_dataframe = pd.DataFrame(data = hourly_data)
     #print(hourly_dataframe)
     return hourly_dataframe
 
+
+###Curent input field###
 latitude = -38.0702 #51.5085#-38.0702 works for other time zones so far the tests were pakenham and london
 longitude = 145.4741 #-0.1257#145.4741
 date = "2025-04-21"
-time = 1
+time = "12:00"#note midnight has to be represented with 00:00
 weather_results = weather_calculation(latitude, longitude, date, time)
-print(weather_results)
 
+print(weather_results)#good for testing results
+#print(weather_results["date"])
+#print(weather_results["date"][1])
+
+
+i = 0
+for val in weather_results["date"]:
+    print(val)
+    if date in str(val):#needs to be a string to compare
+        if time in str(val):
+            print("^ This is the date ^")
+            tempreture = str(weather_results["temperature_2m"][i]) + "°C"
+            rain_chance = str(weather_results["precipitation_probability"][i])+ "%"
+            precipitation_amount = str(weather_results["precipitation"][i])+ " mm" #i think precipitation is mostly rain but could include snow if cold which is why i picked it over rain
+            wind_speed = str(weather_results["wind_speed_10m"][i]) + " km/h"
+    i = (i + 1)
+
+print("\nThe weather results for laditude " + str(latitude) + ", longditude " + str(longitude) + " at " + time + " on the " + date + " is:\n")
+print("Tempreture " + tempreture)
+print("Rain chance " + rain_chance)
+print("Precipitation amount " + precipitation_amount)
+print("Wind speed " + wind_speed)
 
 
 
