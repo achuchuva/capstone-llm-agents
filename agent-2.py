@@ -69,7 +69,7 @@ def weather_calculation(lat, lon, date, time):#requires very spercific formattin
     #print(hourly_dataframe)
     return hourly_dataframe
 
-latitude = -38.0702 #51.5085#-38.0702 works for other time zones so far test was london
+latitude = -38.0702 #51.5085#-38.0702 works for other time zones so far the tests were pakenham and london
 longitude = 145.4741 #-0.1257#145.4741
 date = "2025-04-21"
 time = 1
