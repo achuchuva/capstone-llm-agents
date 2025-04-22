@@ -107,6 +107,7 @@ from autogen import register_function
 
 
 llm_config = {
+    #"model": "gemma3:4b",
     "model": "gemma3:4b",
     "api_type": "ollama",
     "temperature": 0.5,
