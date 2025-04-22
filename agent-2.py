@@ -167,6 +167,7 @@ location_agent = ConversableAgent(
     human_input_mode="NEVER",  # Never ask for human input.
 )
 
+#https://microsoft.github.io/autogen/0.2/docs/tutorial/tool-use/
 # Register the calculator function to the two agents.
 register_function(
     weather_calculation,
