@@ -106,7 +106,7 @@ llm_config = {
     "temperature": 0.5,
 }
 
-weather_request_agent = ConversableAgent(  # declaring agent
+weather_agent = ConversableAgent(  # declaring agent
     name="request_agent",
     system_message="""
     Extract requested details from the user and return ONLY this JSON format:
@@ -120,7 +120,48 @@ weather_request_agent = ConversableAgent(  # declaring agent
 )
 
 
+user_message = "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
+#https://microsoft.github.io/autogen/0.2/docs/tutorial/chat-termination/ example passing through messages
+weather_agent = ConversableAgent(  # declaring agent
+    name="weather_agent",
+    system_message="""
+    Given the provided details, generate the tempreture, rain chance, precipitation amount and wind speed based off the date, time, latitude and longditude.
+    Format the response as:
+    {
+        "location": {"name": "requested_location"},
+        "laditude": {"name": "laditude_created"},
+        "longditude": "longditude_created",
+        "date": {"name": "requested_date"},
+        "time": {"name": "requested_time"},
+        "tempreture": "predicted_tempreture",
+        "rain_chance": {"name": "predictedrain_chance"},
+        "precipitation_amount": {"name": "predicted_precipitation_amount"},
+        "wind_speed": "predicted_wind_speed",
+    }
+    The location, date and time should be provided based off the location agent. The latitude and longditude you must use what is provided. The tempreture, rain chance, precipitation amount and wind speed you can make up the best you can.
+    Return NOTHING else - no text or explanations just the raw JSON.""",    # system prompt to tailor output
+    llm_config=llm_config,
+)
 
+location_agent = ConversableAgent(
+    name="location_agent",
+    system_message="""Your Job is to only create the latitude and longditude of the requested location and then provide them as well as the name of the location, date and time to the weather agent.
+    Format the response as:
+    {
+        "location": {"name": "requested_location"},
+        "laditude": {"name": "laditude_created"},
+        "longditude": "longditude_created",
+        "date": {"name": "requested_date"},
+        "time": {"name": "requested_time"},
+    }
+
+    do not include any other messages
+    """,
+    llm_config=llm_config,
+    human_input_mode="NEVER",  # Never ask for human input.
+)
+
+result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=1)
 
 '''
 class Location(BaseModel):
