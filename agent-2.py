@@ -15,90 +15,96 @@ from retry_requests import retry
 from datetime import timedelta, timezone
 
 
-def weather_calculation(lat, lon, date, time):#requires very spercific formatting :(. code from https://open-meteo.com/en/docs?latitude=-38.0702&longitude=145.4741&timezone=auto
-    # Setup the Open-Meteo API client with cache and retry on error
-    cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
-    retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
-    openmeteo = openmeteo_requests.Client(session = retry_session)
+def weather_calculation(lat: float, lon: float, date: str, time: str):#requires very spercific formatting :(. code from https://open-meteo.com/en/docs?latitude=-38.0702&longitude=145.4741&timezone=auto
+    try:
+        # Setup the Open-Meteo API client with cache and retry on error
+        cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
+        retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
+        openmeteo = openmeteo_requests.Client(session = retry_session)
 
-    # Make sure all required weather variables are listed here
-    # The order of variables in hourly or daily is important to assign them correctly below
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "hourly": ["temperature_2m", "precipitation_probability", "precipitation", "wind_speed_10m"],
-        "timezone": "auto",
-        #"forecast_days": 2#can change to get a larger forcast range or a date range. NOTE: i think using this is the best over date
-        "start_date": date,#seems to strugle getting the correct date
-	    "end_date": date
-    }
-    responses = openmeteo.weather_api(url, params=params)
+        # Make sure all required weather variables are listed here
+        # The order of variables in hourly or daily is important to assign them correctly below
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "hourly": ["temperature_2m", "precipitation_probability", "precipitation", "wind_speed_10m"],
+            "timezone": "auto",
+            #"forecast_days": 2#can change to get a larger forcast range or a date range. NOTE: i think using this is the best over date
+            "start_date": date,#seems to strugle getting the correct date
+            "end_date": date
+        }
+        responses = openmeteo.weather_api(url, params=params)
 
-    # Process first location. Add a for-loop for multiple locations or weather models
-    response = responses[0]
-    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation {response.Elevation()} m asl")
-    print(f"Timezone {response.Timezone()}{response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+        # Process first location. Add a for-loop for multiple locations or weather models
+        response = responses[0]
+        print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+        print(f"Elevation {response.Elevation()} m asl")
+        print(f"Timezone {response.Timezone()}{response.TimezoneAbbreviation()}")
+        print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
-    # Process hourly data. The order of variables needs to be the same as requested.
-    hourly = response.Hourly()
-    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_precipitation_probability = hourly.Variables(1).ValuesAsNumpy()
-    hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
-    hourly_wind_speed_10m = hourly.Variables(3).ValuesAsNumpy()
+        # Process hourly data. The order of variables needs to be the same as requested.
+        hourly = response.Hourly()
+        hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+        hourly_precipitation_probability = hourly.Variables(1).ValuesAsNumpy()
+        hourly_precipitation = hourly.Variables(2).ValuesAsNumpy()
+        hourly_wind_speed_10m = hourly.Variables(3).ValuesAsNumpy()
 
-    hourly_data = {#https://github.com/open-meteo/open-meteo/issues/850 fix for timezone issue
-        "date": pd.date_range(
-            start=pd.to_datetime(hourly.Time(), unit="s", utc=True).tz_convert(
-                timezone(timedelta(seconds=response.UtcOffsetSeconds()))
-            ),
-            end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True).tz_convert(
-                timezone(timedelta(seconds=response.UtcOffsetSeconds()))
-            ),
-            freq=pd.Timedelta(seconds=hourly.Interval()),
-            inclusive="left",
-        )
-    }
+        hourly_data = {#https://github.com/open-meteo/open-meteo/issues/850 fix for timezone issue
+            "date": pd.date_range(
+                start=pd.to_datetime(hourly.Time(), unit="s", utc=True).tz_convert(
+                    timezone(timedelta(seconds=response.UtcOffsetSeconds()))
+                ),
+                end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True).tz_convert(
+                    timezone(timedelta(seconds=response.UtcOffsetSeconds()))
+                ),
+                freq=pd.Timedelta(seconds=hourly.Interval()),
+                inclusive="left",
+            )
+        }
 
-    hourly_data["temperature_2m"] = hourly_temperature_2m
-    hourly_data["precipitation_probability"] = hourly_precipitation_probability
-    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
-    hourly_data["precipitation"] = hourly_precipitation
+        hourly_data["temperature_2m"] = hourly_temperature_2m
+        hourly_data["precipitation_probability"] = hourly_precipitation_probability
+        hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
+        hourly_data["precipitation"] = hourly_precipitation
 
-    hourly_dataframe = pd.DataFrame(data = hourly_data)
-    #print(hourly_dataframe)
-    i = 0
-    for val in hourly_dataframe["date"]:
-        print(val)
-        if date in str(val):#needs to be a string to compare
-            if time in str(val):
-                print("^ This is the date ^")
-                tempreture = str(hourly_dataframe["temperature_2m"][i]) + "°C"
-                rain_chance = str(hourly_dataframe["precipitation_probability"][i])+ "%"
-                precipitation_amount = str(hourly_dataframe["precipitation"][i])+ " mm" #i think precipitation is mostly rain but could include snow if cold which is why i picked it over rain
-                wind_speed = str(hourly_dataframe["wind_speed_10m"][i]) + " km/h"
-        i = (i + 1)
+        hourly_dataframe = pd.DataFrame(data = hourly_data)
+        #print(hourly_dataframe)
+        i = 0
+        for val in hourly_dataframe["date"]:
+            print(val)
+            if date in str(val):#needs to be a string to compare
+                if time in str(val):
+                    print("^ This is the date ^")
+                    tempreture = str(hourly_dataframe["temperature_2m"][i]) + "°C"
+                    rain_chance = str(hourly_dataframe["precipitation_probability"][i])+ "%"
+                    precipitation_amount = str(hourly_dataframe["precipitation"][i])+ " mm" #i think precipitation is mostly rain but could include snow if cold which is why i picked it over rain
+                    wind_speed = str(hourly_dataframe["wind_speed_10m"][i]) + " km/h"
+            i = (i + 1)
 
-    print("\nThe weather results for laditude " + str(latitude) + ", longditude " + str(longitude) + " at " + time + " on the " + date + " is:\n")
-    print("Tempreture " + tempreture)
-    print("Rain chance " + rain_chance)
-    print("Precipitation amount " + precipitation_amount)
-    print("Wind speed " + wind_speed)
-    return hourly_dataframe
-
+        print("\nThe weather results for laditude " + str(latitude) + ", longditude " + str(longitude) + " at " + time + " on the " + date + " is:\n")
+        print("Tempreture " + tempreture)
+        print("Rain chance " + rain_chance)
+        print("Precipitation amount " + precipitation_amount)
+        print("Wind speed " + wind_speed)
+        return hourly_dataframe
+    except:
+        print("An error has occured in the input")
 
 ###Curent input field###
 latitude = -38.0702 #51.5085#-38.0702 works for other time zones so far the tests were pakenham and london
 longitude = 145.4741 #-0.1257#145.4741
-date = "2025-04-21"
-time = "12:00"#note midnight has to be represented with 00:00
+date = "2025-04-23"
+time = "13:00"#note midnight has to be represented with 00:00
 weather_results = weather_calculation(latitude, longitude, date, time)
 
 #print(weather_results)#good for testing results
 #print(weather_results["date"])
 #print(weather_results["date"][1])
+
+from autogen import register_function
+
+
 
 llm_config = {
     "model": "gemma3:4b",
@@ -120,12 +126,12 @@ weather_agent = ConversableAgent(  # declaring agent
 )
 
 
-user_message = "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
+
 #https://microsoft.github.io/autogen/0.2/docs/tutorial/chat-termination/ example passing through messages
 weather_agent = ConversableAgent(  # declaring agent
     name="weather_agent",
     system_message="""
-    Given the provided details, generate the tempreture, rain chance, precipitation amount and wind speed based off the date, time, latitude and longditude.
+    Given the provided details, generate the latitude and longditude of the location and then use the weather calculator to find the rest of the detais to fill in the format bellow.
     Format the response as:
     {
         "location": {"name": "requested_location"},
@@ -161,6 +167,16 @@ location_agent = ConversableAgent(
     human_input_mode="NEVER",  # Never ask for human input.
 )
 
+# Register the calculator function to the two agents.
+register_function(
+    weather_calculation,
+    caller=weather_agent,  # The assistant agent can suggest calls to the calculator.
+    executor=weather_agent,  # The user proxy agent can execute the calculator calls.
+    name="weather_calculator",  # By default, the function name is used as the tool name.
+    description="A function which uses latitude, longditude, date and time to calculate the weather",  # A description of the tool.
+)
+
+user_message = "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
 result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=1)
 
 '''
