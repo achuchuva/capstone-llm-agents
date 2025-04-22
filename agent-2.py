@@ -183,7 +183,6 @@ register_function(
 
 user_message = "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
 result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=3)
-
 '''
 class Location(BaseModel):
     name: str
