@@ -17,6 +17,7 @@ from datetime import timedelta, timezone
 
 def weather_calculation(lat: float, lon: float, date: str, time: str):#requires very spercific formatting :(. code from https://open-meteo.com/en/docs?latitude=-38.0702&longitude=145.4741&timezone=auto
     try:
+        print("Using weather calculation function")
         # Setup the Open-Meteo API client with cache and retry on error
         cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
         retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -82,12 +83,13 @@ def weather_calculation(lat: float, lon: float, date: str, time: str):#requires 
                     wind_speed = str(hourly_dataframe["wind_speed_10m"][i]) + " km/h"
             i = (i + 1)
 
-        print("\nThe weather results for laditude " + str(latitude) + ", longditude " + str(longitude) + " at " + time + " on the " + date + " is:\n")
-        print("Tempreture " + tempreture)
-        print("Rain chance " + rain_chance)
-        print("Precipitation amount " + precipitation_amount)
-        print("Wind speed " + wind_speed)
-        return hourly_dataframe
+        #print("\nThe weather results for laditude " + str(latitude) + ", longditude " + str(longitude) + " at " + time + " on the " + date + " is:\n")
+        #print("Tempreture " + tempreture)
+        #print("Rain chance " + rain_chance)
+        #print("Precipitation amount " + precipitation_amount)
+        #print("Wind speed " + wind_speed)
+        #return hourly_dataframe
+        return ("\nThe weather results for laditude " + str(latitude) + ", longditude " + str(longitude) + " at " + time + " on the " + date + " is:\n" + "Tempreture " + tempreture + "\nRain chance " + rain_chance + "\nPrecipitation amount " + precipitation_amount + "\nWind speed " + wind_speed)
     except:
         print("An error has occured in the input")
 
@@ -97,6 +99,7 @@ longitude = 145.4741 #-0.1257#145.4741
 date = "2025-04-23"
 time = "13:00"#note midnight has to be represented with 00:00
 weather_results = weather_calculation(latitude, longitude, date, time)
+print(weather_results)
 
 #print(weather_results)#good for testing results
 #print(weather_results["date"])
@@ -108,7 +111,7 @@ from autogen import register_function
 
 llm_config = {
     #"model": "gemma3:4b",
-    "model": "gemma3:4b",
+    "model": "llama3.2",#for some reason gemma3 does not have the tools or something to use the functions
     "api_type": "ollama",
     "temperature": 0.5,
 }
@@ -179,7 +182,7 @@ register_function(
 )
 
 user_message = "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
-result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=1)
+result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=3)
 
 '''
 class Location(BaseModel):
