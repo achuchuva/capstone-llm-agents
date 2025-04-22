@@ -100,12 +100,29 @@ weather_results = weather_calculation(latitude, longitude, date, time)
 #print(weather_results["date"])
 #print(weather_results["date"][1])
 
+llm_config = {
+    "model": "gemma3:4b",
+    "api_type": "ollama",
+    "temperature": 0.5,
+}
+
+weather_request_agent = ConversableAgent(  # declaring agent
+    name="request_agent",
+    system_message="""
+    Extract requested details from the user and return ONLY this JSON format:
+    {
+        "location": {"name": "requested_location"},
+        "date": {"name": "requested_date"},
+        "time": "requested_time"
+    }
+    Return NOTHING else - no text or explanations just the raw JSON.""",    # system prompt to tailor output
+    llm_config=llm_config,
+)
 
 
 
 
-
-
+'''
 class Location(BaseModel):
     name: str
     # future implementation could be lat/long
@@ -195,7 +212,7 @@ if travel_details:
         print(chat_results[0].summary)
 else:
     print("\n\nNo travel details available.")
-
+'''
 
 
 
