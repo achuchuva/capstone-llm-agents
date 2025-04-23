@@ -1,3 +1,28 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -8,6 +33,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -25,6 +51,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.egg-info/
+.installed.cfg
+*.egg
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -50,6 +79,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.hypothesis/
 
 # Translations
 *.mo
@@ -123,6 +153,11 @@ __pypackages__/
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
 
 # SageMath parsed files
 *.sage.py
@@ -135,6 +170,13 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
 
 # Spyder project settings
 .spyderproject
@@ -175,3 +217,9 @@ cython_debug/
 
 # ignore config dir
 config/*.json
+
+# ignore zip
+*.zip
+
+# cache
+.cache/
