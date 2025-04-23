@@ -224,3 +224,6 @@ config/*.json
 # cache
 .cache/
 .cache.sqlite
+
+# google_transit
+google_transit
