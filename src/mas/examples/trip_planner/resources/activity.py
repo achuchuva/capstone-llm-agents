@@ -14,6 +14,9 @@ class ActivityResource(BaseResource):
 
         location: str
         """The location of the activity."""
+        description: str
+        """A description of the activity."""
+
         duration: int
         """The duration of the activity in minutes."""
 

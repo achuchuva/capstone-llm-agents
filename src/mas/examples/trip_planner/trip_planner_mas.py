@@ -71,7 +71,7 @@ class TripPlannerMAS(MultiAgentSystem):
             input_resource=ActivitiesResource,
             output_resource=TravelPlanResource,
             generate_str=generate_str_using_template(
-                "I want to know the travel plan between the following activities: {activities}.",
+                "I want to know the travel plan between the following activities. The start and end locations should be train stations near to the activities: {activities}.",
             ),
             agent=trip_activity_agent,
         )
