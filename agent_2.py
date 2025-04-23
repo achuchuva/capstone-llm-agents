@@ -1,18 +1,21 @@
-print("hello world")
-from autogen import ConversableAgent
+"""Weather agent using Open-Meteo API"""
 
+from datetime import timedelta, timezone
+
+
+from autogen import ConversableAgent, register_function
 
 import openmeteo_requests
 
 import requests_cache
 import pandas as pd
 from retry_requests import retry
-from datetime import timedelta, timezone
 
 
 def weather_calculation(
     lat: str, lon: str, date: str, time: str
 ):  # requires very spercific formatting :(. code from https://open-meteo.com/en/docs?latitude=-38.0702&longitude=145.4741&timezone=auto
+    """Function to calculate the weather using Open-Meteo API."""
 
     print("Using weather calculation function")
     # Setup the Open-Meteo API client with cache and retry on error
@@ -98,10 +101,10 @@ def weather_calculation(
         i = i + 1
 
     return (
-        "\nThe weather results for laditude "
-        + str(latitude)
-        + ", longditude "
-        + str(longitude)
+        "\nThe weather results for latitude "
+        + str(lat)
+        + ", longitude "
+        + str(lon)
         + " at "
         + time
         + " on the "
@@ -118,21 +121,28 @@ def weather_calculation(
     )
 
 
-###Curent input field###
-latitude = (
-    -38.0702
-)  # 51.5085#-38.0702 works for other time zones so far the tests were pakenham and london
-longitude = 145.4741  # -0.1257#145.4741
-date = "2025-04-23"
-time = "13:00"  # note midnight has to be represented with 00:00
-weather_results = weather_calculation(latitude, longitude, date, time)
+# 51.5085, -38.0702 works for other time zones so far the tests were pakenham and london
+
+# note midnight has to be represented with 00:00
+
+example = {
+    "latitude": "-38.0702",
+    "longitude": "145.4741",
+    "date": "2025-04-23",
+    "time": "13:00",
+}
+
+weather_results = weather_calculation(
+    example["latitude"],
+    example["longitude"],
+    example["date"],
+    example["time"],
+)
 print(weather_results)
 
 # print(weather_results)#good for testing results
 # print(weather_results["date"])
 # print(weather_results["date"][1])
-
-from autogen import register_function
 
 
 llm_config = {
@@ -160,12 +170,12 @@ weather_agent = ConversableAgent(  # declaring agent
 weather_agent = ConversableAgent(  # declaring agent
     name="weather_agent",
     system_message="""
-    Given the provided details, generate the latitude and longditude of the location and then use the weather calculator to find the rest of the detais to fill in the format bellow. When you use the calculater make sure to format the date as (dd-mm-yyyy). the time should be formated as (xx:xx). latitude and longditude should be floats. make sure to first put in the latitude, then the longditude, then the date and then the time
+    Given the provided details, generate the latitude and longitude of the location and then use the weather calculator to find the rest of the detais to fill in the format bellow. When you use the calculater make sure to format the date as (dd-mm-yyyy). the time should be formated as (xx:xx). latitude and longitude should be floats. make sure to first put in the latitude, then the longitude, then the date and then the time
     Format the response as:
     {
         "location": {"name": "requested_location"},
-        "laditude": {"name": "laditude_created"},
-        "longditude": "longditude_created",
+        "latitude": {"name": "latitude_created"},
+        "longitude": "longitude_created",
         "date": {"name": "requested_date"},
         "time": {"name": "requested_time"},
         "temperature": "predicted_temperature",
@@ -173,19 +183,19 @@ weather_agent = ConversableAgent(  # declaring agent
         "precipitation_amount": {"name": "predicted_precipitation_amount"},
         "wind_speed": "predicted_wind_speed",
     }
-    The location, date and time should be provided based off the location agent. The latitude and longditude you must use what is provided. The temperature, rain chance, precipitation amount and wind speed you can make up the best you can.
+    The location, date and time should be provided based off the location agent. The latitude and longitude you must use what is provided. The temperature, rain chance, precipitation amount and wind speed you can make up the best you can.
     Return NOTHING else - no text or explanations just the raw JSON.""",  # system prompt to tailor output
     llm_config=llm_config,
 )
 
 location_agent = ConversableAgent(
     name="location_agent",
-    system_message="""Your Job is to only create the latitude and longditude of the requested location and then provide them as well as the name of the location, date and time to the weather agent.
+    system_message="""Your Job is to only create the latitude and longitude of the requested location and then provide them as well as the name of the location, date and time to the weather agent.
     Format the response as:
     {
         "location": {"name": "requested_location"},
-        "laditude": {"name": "laditude_created"},
-        "longditude": "longditude_created",
+        "latitude": {"name": "latitude_created"},
+        "longitude": "longitude_created",
         "date": {"name": "requested_date"},
         "time": {"name": "requested_time"},
     }
@@ -203,10 +213,13 @@ register_function(
     caller=location_agent,  # The assistant agent can suggest calls to the calculator.
     executor=weather_agent,  # The user proxy agent can execute the calculator calls.
     name="weather_calculator",  # By default, the function name is used as the tool name.
-    description="A function which uses latitude, longditude, date and time to calculate the weather",  # A description of the tool.
+    description="A function which uses latitude, longitude, date and time to calculate the weather",  # A description of the tool.
 )
 
-user_message = (
+USER_MESSAGE = (
     "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
 )
-result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=3)
+result = location_agent.initiate_chat(weather_agent, message=USER_MESSAGE, max_turns=3)
+
+print("summary")
+print(result.summary)

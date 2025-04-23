@@ -3,20 +3,24 @@ from pydantic import BaseModel
 from autogen import ConversableAgent
 from autogen.tools.dependency_injection import BaseContext
 
+
 class Location(BaseModel):
     name: str
     # future implementation could be lat/long
 
+
 class TravelRequest(BaseContext, BaseModel):
     start: Location
     destination: Location
-    time: str   # departure time
+    time: str  # departure time
+
 
 class TravelResponse(BaseContext, BaseModel):
     start: Location
     destination: Location
     time_taken: str
     transport: str  # mode of transport
+
 
 llm_config = {
     "model": "llama3.2",
@@ -33,7 +37,7 @@ trip_request_agent = ConversableAgent(  # declaring agent
         "destination": {"name": "destination_location"},
         "time": "departure_time"
     }
-    Return NOTHING else - no text or explanations just the raw JSON.""",    # system prompt to tailor output
+    Return NOTHING else - no text or explanations just the raw JSON.""",  # system prompt to tailor output
     llm_config=llm_config,
 )
 
@@ -60,24 +64,24 @@ coordinator = ConversableAgent(
 )
 
 user_message = "I want to get to Richmond station by 10:30am from Pakenham Station"
-'''
+"""
 user_messages = {
     
 }   add more stuff
-'''
+"""
 
-chat_results = coordinator.initiate_chats([
-    {"recipient": trip_request_agent, "message": user_message, "max_turns": 1}
-])
+chat_results = coordinator.initiate_chats(
+    [{"recipient": trip_request_agent, "message": user_message, "max_turns": 1}]
+)
 
 travel_details = None
 if chat_results:
     travel_details = chat_results[0].summary
 
 if travel_details:
-    chat_results = coordinator.initiate_chats([
-        {"recipient": trip_response_agent, "message": travel_details, "max_turns": 1}
-    ])
+    chat_results = coordinator.initiate_chats(
+        [{"recipient": trip_response_agent, "message": travel_details, "max_turns": 1}]
+    )
     if chat_results:
         print(chat_results[0].summary)
 else:
