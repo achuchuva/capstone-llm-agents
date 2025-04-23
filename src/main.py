@@ -1,7 +1,7 @@
 """Entry point of the program."""
 
 from app import App
-from mas.examples.mas_testing import test_basic_mas
+from mas.examples.trip import trip_app
 
 
 def main():
@@ -9,7 +9,7 @@ def main():
     app = App()
     app.run()
 
-    test_basic_mas(app)
+    trip_app(app)
 
 
 if __name__ == "__main__":

@@ -18,6 +18,8 @@ class AG2MASAgent(MASAgent):
         description: str,
         llm_config: LLMConfig,
         system_message: str | None = None,
+        override: bool = True,
+        response_format: None | type[BaseModel] = None,
     ):
         """
         Initialise the AG2MASAgent with a name.
@@ -27,6 +29,8 @@ class AG2MASAgent(MASAgent):
             description (str): The description of the agent.
             llm_config (LLMConfig): The LLM configuration for the agent.
             system_message (str | None): The system message for the agent. Defaults to description if None.
+            override (bool): Whether to allow recreation of the agent with a new LLM configuration. Defaults to True.
+            response_format (None | type[BaseModel]): The response format for the agent. Defaults to None.
         """
         super().__init__(name, description)
 
@@ -37,8 +41,7 @@ class AG2MASAgent(MASAgent):
         # copy llm_config
         copy_llm_config: LLMConfig = llm_config.copy()
 
-        response_format: None | type[BaseModel] = None
-
+        response_format: None | type[BaseModel] = response_format or None
         # set response format
         copy_llm_config["response_format"] = response_format
 
@@ -62,8 +65,17 @@ class AG2MASAgent(MASAgent):
             llm_config=copy_llm_config,
         )
 
+        # tools
+        self.tools: list[Tool] = []
+
+        self.override = override
+
     def recreate_llm_config(self):
         """Recreate the LLM configuration for the agent."""
+
+        if not self.override:
+            return
+
         # copy llm_config
         copy_llm_config = self.llm_config.copy()
 
@@ -75,6 +87,9 @@ class AG2MASAgent(MASAgent):
     def recreate_agent(self):
         """Recreate the agent with the current LLM configuration."""
 
+        if not self.override:
+            return
+
         # recreate llm config
         self.recreate_llm_config()
 
@@ -84,6 +99,10 @@ class AG2MASAgent(MASAgent):
             system_message=self.system_message,
             llm_config=self.llm_config,
         )
+
+        # register tools
+        for tool in self.tools:
+            self.register_tool(tool)
 
     # TODO: This is a hack. It recreates the agent with the new response format.
     # This may have unintended consequences which we are currently unaware of.
@@ -108,6 +127,8 @@ class AG2MASAgent(MASAgent):
             ValueError: If the tool executor is not an AG2MASAgent.
 
         """
+        # add tool to tools
+        self.tools.append(tool)
 
         executor = tool.get_executor()
 
@@ -127,18 +148,19 @@ class AG2MASAgent(MASAgent):
     # so we need to change it to be a list of prompts
     # and a Prompt obj cause there are settings ({ message: "", role: "user/system" })
     # and a Chat obj cause there are other settings (max_turns, recipient)
-    def ask(self, prompt: str):
+    def ask(self, prompt: str, num_tries: int = 1):
         """Prompt the agent.
 
         Args:
             prompt (str): The prompt to send to the agent.
+            num_tries (int): The number of tries to get a response. Defaults to 1.
 
         """
         # TODO abstract out details
 
         chat_result = self.ag2_agent.initiate_chat(
             recipient=self.ag2_agent,
-            max_turns=1,
+            max_turns=num_tries,
             message={
                 "role": "user",
                 "content": prompt,
@@ -155,3 +177,21 @@ class AG2MASAgent(MASAgent):
 
         # convert to pydantic model
         return self.ag2_agent.llm_config["response_format"](**json_data)
+
+    @classmethod
+    def from_existing_agent(cls, agent: ConversableAgent):
+        """Create an AG2MASAgent from an existing agent.
+
+        Args:
+            agent (ConversableAgent): The existing agent to use.
+
+        """
+
+        return cls(
+            name=agent.name,
+            description=agent.description,
+            llm_config=agent.llm_config,
+            system_message=agent.system_message,
+            override=False,
+            response_format=agent.llm_config["response_format"],
+        )

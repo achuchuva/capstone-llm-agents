@@ -22,6 +22,7 @@ class AG2Task(
         output_resource: Type[OutputResource],
         generate_str: Callable[[InputResource], str],
         agent: AG2MASAgent,
+        num_tries: int = 1,
     ):
         """
         Initialise the AG2Task with input and output resource types and a function to do the work.
@@ -34,6 +35,8 @@ class AG2Task(
             generate_str (Callable[[InputResource], str]): The function to generate the string template.
         """
         self.agent = agent
+
+        self.num_tries = num_tries
 
         do_work = self.get_do_work(generate_str)
 
@@ -61,8 +64,9 @@ class AG2Task(
             self.agent.set_response_format(self.output_resource.get_model_type())
 
             # call the LLM to generate the output resource model
-            output_resource_model = self.agent.ask(formatted_str)
-
+            output_resource_model = self.agent.ask(
+                formatted_str, num_tries=self.num_tries
+            )
             # TODO problem with this is that it assumes the output resource
             # has only one arg and that arg is the model which isn't necessarily true
 

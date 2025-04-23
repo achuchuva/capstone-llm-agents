@@ -1,6 +1,7 @@
 """Weather agent using Open-Meteo API"""
 
 from datetime import timedelta, timezone
+import json
 
 
 from autogen import ConversableAgent, register_function
@@ -12,9 +13,9 @@ import pandas as pd
 from retry_requests import retry
 
 
-def weather_calculation(
-    lat: str, lon: str, date: str, time: str
-):  # requires very spercific formatting :(. code from https://open-meteo.com/en/docs?latitude=-38.0702&longitude=145.4741&timezone=auto
+def weather_calculation(lat: str, lon: str, date: str, time: str):
+
+    # requires very spercific formatting :(. code from https://open-meteo.com/en/docs?latitude=-38.0702&longitude=145.4741&timezone=auto
     """Function to calculate the weather using Open-Meteo API."""
 
     print("Using weather calculation function")
@@ -100,24 +101,15 @@ def weather_calculation(
                 wind_speed = str(hourly_dataframe["wind_speed_10m"][i]) + " km/h"
         i = i + 1
 
-    return (
-        "\nThe weather results for latitude "
-        + str(lat)
-        + ", longitude "
-        + str(lon)
-        + " at "
-        + time
-        + " on the "
-        + date
-        + " is:\n"
-        + "temperature "
-        + temperature
-        + "\nRain chance "
-        + rain_chance
-        + "\nPrecipitation amount "
-        + precipitation_amount
-        + "\nWind speed "
-        + wind_speed
+    return WeatherData(
+        latitude=float(lat),
+        longitude=float(lon),
+        date=date,
+        time=time,
+        temperature=temperature,
+        rain_chance=rain_chance,
+        precipitation_amount=precipitation_amount,
+        wind_speed=wind_speed,
     )
 
 
@@ -221,5 +213,15 @@ USER_MESSAGE = (
 )
 result = location_agent.initiate_chat(weather_agent, message=USER_MESSAGE, max_turns=3)
 
+
+summary = result.summary
+
+# remap to the WeatherData class
+summary_json = json.loads(summary)
+
+summary = WeatherData(**summary_json)  # Unpack the JSON into the WeatherData class
+
+
 print("summary")
-print(result.summary)
+print(summary)
+print(type(summary))

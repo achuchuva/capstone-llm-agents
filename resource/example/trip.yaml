@@ -1,0 +1,43 @@
+input:
+  - trip_idea:
+      id: 1
+      args:
+        city: "Melbourne"
+        number_of_activities: 3
+        date: "2023-04-23"
+
+resources:
+  - trip_activities:
+      id: 1
+      descriptors:
+        trip_in_city:
+          params:
+            trip_idea:
+              trip_idea:
+                id: 1
+
+  - weather:
+      id: 1
+      descriptors:
+        at_place_and_time:
+          params:
+            trip_idea:
+              trip_idea:
+                id: 1
+
+  - travel_plan:
+      id: 1
+      descriptors:
+        with_activities:
+          params:
+            trip_activities:
+              trip_activities:
+                id: 1
+
+output:
+  - trip_activities:
+      id: 1
+  - travel_plan:
+      id: 1
+  - weather:
+      id: 1
