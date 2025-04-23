@@ -5,22 +5,20 @@ from xhtml2pdf import pisa
 from tools import get_calendar, create_ics_event, document_creator
 
 
-ollama_config = {
-    "config_list": [
-        {
-            "model": "mistral",  
-            "api_type": "ollama",
-            "base_url": "http://localhost:11434",
-            "stream": False,
-        }
-    ],
+granite_config = {
+    "model": "granite3.1-dense",
+    "api_type": "ollama",
 }
-
-llm_config = {
-    "model": "mistral",
+llmama_config = {
+    "model": "llama3.2",
     "api_type": "ollama",
     "temperature": 0.5,
 }
+coder_config = {
+    "model": "qwen2.5-coder:14b",
+    "api_type": "ollama",
+}
+
 
 now = datetime.now()
 format_now = now.strftime("%A, %B %d, %Y at %I:%M %p")
@@ -46,22 +44,24 @@ Do not mention the specific name of the calendar tool or function you are using 
 
 The current date and time is {format_now}.
 """
-
+#the user agent for testing
 user_proxy_agent = UserProxyAgent(
     name="User",
     code_execution_config=False,  
+    human_input_mode="NEVER"
     is_termination_msg=lambda msg: "FINISH" in msg.get("content"),
 )
 
-
+#assitant with access to calander
+#can access the .ics file to chekc the calander
 assistant_agent = AssistantAgent(
-    name="Ollama Assistant",
-    llm_config=ollama_config,  
+    name="Calander Assitant",
+    llm_config=granite_config,  
     system_message=message,
     function_map={"get_calendar": get_calendar, "create_ics_event": create_ics_event},  
 )
 
-
+#replace with whateever the trip response agent is
 trip_response_agent = ConversableAgent(
     name="travel agent",
     system_message="""
@@ -76,9 +76,11 @@ trip_response_agent = ConversableAgent(
     } add the date and time here as well
     The time_taken should be a rough estimate of travel time, and the transport mode should be a relevant mode of transport in Melbourne (e.g., tram, train, bus, walking).
     Return NOTHING else - no text or explanations just the raw JSON.""",
-    llm_config=llm_config,
+    llm_config=llmama_config,
 )
-
+#have to play around with the system message to get the desired format this only works with the travel planing agent provided above 
+#more genral formats can be added later 
+#generates html from the desired output stated in the propmt and creates a pdf using the tool provided to it
 documentWriter = ConversableAgent(
     name="Writer Agent",
     system_message="""
@@ -129,7 +131,7 @@ documentWriter = ConversableAgent(
     </body>
     </html>
     """,
-    llm_config=ollama_config,
+    llm_config=coder_config,
     function_map={"document_creator": document_creator},  
 )
 
@@ -154,18 +156,23 @@ register_function(
     description="Creates a pdf document from a HTML string",
 )
 
-
+"""
 groupchat = autogen.GroupChat(
-    agents=[user_proxy_agent, assistant_agent, trip_response_agent, documentWriter],
+    agents=[assistant_agent, trip_response_agent, dcoumentWriter],
     messages=[],
     max_round=10
 )
 
 manager = autogen.GroupChatManager(
     groupchat=groupchat,
-    llm_config = llm_config,
-    
+    llm_config = granite_config,  
 )
+manager.initiate_chat(
+    recipient=manager,
+    message="Let's start a the discussion!"
+)
+
+"""
 
 chat_results = user_proxy_agent.initiate_chats(
     [
@@ -176,20 +183,24 @@ chat_results = user_proxy_agent.initiate_chats(
             "max_turns": 2,
             "summary_method": "reflection_with_llm",
         },
-        {
-            "recipient": trip_response_agent,
-            "message": "I want to get to Richmond station by 10:30am from Pakenham Station create a trip based on my availability",
-            "max_turns": 1, # One revision
+         {
+            "recipient": assistant_agent,
+            "message": "Please check my availability using the 'get_calander' function and suggest times where a trip can be planned",
+            "max_turns": 1,
             "summary_method": "last_msg",
         },
         {
-            "recipient": documentWriter,
-            #"message": "Please create a document for me using the 'document_creator' function.",
-            "message": '''{"start": {"name": "Melbourne"}, "destination": {"name": "Sydney"}, "time_taken": "1 hour", "transport": "flight", "date & day": "2025-04-25"}
-                Available Dates: ["2025-04-25", "2025-04-26"]''',
-            "max_turns": 3, 
-            "summary_method": "reflection_with_llm",
-        },      
+            "recipient": trip_response_agent,
+            "message": "I want to get to Richmond station by 10:30am from Pakenham Station create a trip based on my availability",
+            "max_turns": 1, 
+            "summary_method": "last_msg",
+        }, 
+        {
+            "recipient": dcoumentWriter,
+            "message": "Please create a document for me",
+            "max_turns": 2, 
+            "summary_method": "last_msg",
+        },   
     ]
 )
 
