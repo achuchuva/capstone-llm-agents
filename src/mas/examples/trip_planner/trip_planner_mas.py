@@ -17,6 +17,7 @@ from utils.string_template import generate_str_using_template
 
 from mas.examples.trip_planner.agents.weather_agent import better_weather_agent
 from mas.examples.trip_planner.agents.trip_activity import trip_activity_agent
+from mas.examples.trip_planner.agents.travel_planner import travel_planner_agent
 from mas.examples.trip_planner.tasks.weather_task import do_weather_task
 
 
@@ -73,7 +74,7 @@ class TripPlannerMAS(MultiAgentSystem):
             generate_str=generate_str_using_template(
                 "I want to know the travel plan between the following activities. The start and end locations should be train stations or tram stops near to the activities. Include train station/tram stop in the name, and make they are real train station/ tram stops. Make sure the duration is not longer than 20 minutes for each travel: {activities}.",
             ),
-            agent=trip_activity_agent,
+            agent=travel_planner_agent,
         )
 
         for task in tasks:
