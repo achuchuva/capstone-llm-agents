@@ -223,3 +223,4 @@ config/*.json
 
 # cache
 .cache/
+.cache.sqlite
