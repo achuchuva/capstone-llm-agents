@@ -60,7 +60,7 @@ class TripPlannerMAS(MultiAgentSystem):
             input_resource=TripIdeaResource,
             output_resource=ActivitiesResource,
             generate_str=generate_str_using_template(
-                "I want to know the activities I can do in {city}. Make sure the duration is at most 120 minutes.",
+                "I want to know {number_of_activities} activities I can do in {city}. Make sure the duration is at most 120 minutes.",
             ),
             agent=trip_activity_agent,
         )
@@ -71,7 +71,7 @@ class TripPlannerMAS(MultiAgentSystem):
             input_resource=ActivitiesResource,
             output_resource=TravelPlanResource,
             generate_str=generate_str_using_template(
-                "I want to know the travel plan between the following activities. The start and end locations should be train stations near to the activities: {activities}.",
+                "I want to know the travel plan between the following activities. The start and end locations should be train stations or tram stops near to the activities. Include train station/tram stop in the name, and make they are real train station/ tram stops. Make sure the duration is not longer than 20 minutes for each travel: {activities}.",
             ),
             agent=trip_activity_agent,
         )

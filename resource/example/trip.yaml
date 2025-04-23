@@ -3,7 +3,7 @@ input:
       id: 1
       args:
         city: "Melbourne"
-        number_of_activities: 3
+        number_of_activities: 2
         date: "2025-04-23"
 
 resources:
