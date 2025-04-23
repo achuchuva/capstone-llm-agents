@@ -32,8 +32,8 @@ class MultiAgentSystem:
         A task manager that knows about all the tasks in the system.
     """
 
-    agents: list[MASAgent]
-    """List of agents in the MAS."""
+    agents: dict[str, MASAgent]
+    """Dictionary of agents in the MAS."""
 
     def __init__(self, alias: ResourceAlias):
         """
@@ -44,7 +44,7 @@ class MultiAgentSystem:
 
         """
 
-        self.agents = []
+        self.agents = {}
 
         self.resource_manager = ResourceManager()
         """The resource manager for the MAS."""
@@ -302,7 +302,10 @@ class MultiAgentSystem:
         Args:
             agent (MASAgent): The agent to be added.
         """
-        self.agents.append(agent)
+        if agent.name in self.agents:
+            raise ValueError(f"Agent {agent.name} already exists in MAS.")
+
+        self.agents[agent.name] = agent
 
     def add_resource_type(self, resource_name: str, resource_type: type[BaseResource]):
         """
