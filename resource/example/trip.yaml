@@ -4,7 +4,7 @@ input:
       args:
         city: "Melbourne"
         number_of_activities: 3
-        date: "2023-04-23"
+        date: "2025-04-23"
 
 resources:
   - trip_activities:

@@ -12,6 +12,17 @@ import requests_cache
 import pandas as pd
 from retry_requests import retry
 
+from pydantic import BaseModel
+
+
+class WeatherData(BaseModel):
+    """Class to hold weather data."""
+
+    temperature: str
+    rain_chance: str
+    precipitation_amount: str
+    wind_speed: str
+
 
 def weather_calculation(lat: str, lon: str, date: str, time: str):
 
@@ -102,10 +113,6 @@ def weather_calculation(lat: str, lon: str, date: str, time: str):
         i = i + 1
 
     return WeatherData(
-        latitude=float(lat),
-        longitude=float(lon),
-        date=date,
-        time=time,
         temperature=temperature,
         rain_chance=rain_chance,
         precipitation_amount=precipitation_amount,
@@ -220,8 +227,3 @@ summary = result.summary
 summary_json = json.loads(summary)
 
 summary = WeatherData(**summary_json)  # Unpack the JSON into the WeatherData class
-
-
-print("summary")
-print(summary)
-print(type(summary))

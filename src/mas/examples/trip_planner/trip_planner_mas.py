@@ -17,6 +17,7 @@ from utils.string_template import generate_str_using_template
 
 from mas.examples.trip_planner.agents.weather_agent import better_weather_agent
 from mas.examples.trip_planner.agents.trip_activity import trip_activity_agent
+from mas.examples.trip_planner.tasks.weather_task import do_weather_task
 
 
 class TripPlannerMAS(MultiAgentSystem):
@@ -45,16 +46,12 @@ class TripPlannerMAS(MultiAgentSystem):
         tasks: list[Task] = []
 
         # TravelIdeaResource -> WeatherResource
-        get_weather_at_place_and_time = AG2Task(
+        get_weather_at_place_and_time = Task(
             name="GetWeatherAtPlaceAndTime",
             description="Get the weather at a place and time.",
             input_resource=TripIdeaResource,
             output_resource=WeatherResource,
-            generate_str=generate_str_using_template(
-                "I want to know the weather in {city} at 12:00 on the {date}.",
-            ),
-            agent=better_weather_agent,
-            num_tries=3,
+            do_work=do_weather_task,
         )
         # TripIdeaResource -> ActivitiesResource
         generate_trip_activity_ideas = AG2Task(

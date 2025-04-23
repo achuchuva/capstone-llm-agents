@@ -12,10 +12,6 @@ class WeatherResource(BaseResource):
     class WeatherData(BaseModel):
         """Class to hold weather data."""
 
-        latitude: float
-        longitude: float
-        date: str
-        time: str
         temperature: str
         rain_chance: str
         precipitation_amount: str
