@@ -77,7 +77,7 @@ def weather_calculation(
     # print(hourly_dataframe)
     i = 0
 
-    tempreture = "0°C"
+    temperature = "0°C"
     rain_chance = "0%"
     precipitation_amount = "0 mm"
     wind_speed = "0 km/h"
@@ -87,7 +87,7 @@ def weather_calculation(
         if date in str(val):  # needs to be a string to compare
             if time in str(val):
                 print("^ This is the date ^")
-                tempreture = str(hourly_dataframe["temperature_2m"][i]) + "°C"
+                temperature = str(hourly_dataframe["temperature_2m"][i]) + "°C"
                 rain_chance = (
                     str(hourly_dataframe["precipitation_probability"][i]) + "%"
                 )
@@ -107,8 +107,8 @@ def weather_calculation(
         + " on the "
         + date
         + " is:\n"
-        + "Tempreture "
-        + tempreture
+        + "temperature "
+        + temperature
         + "\nRain chance "
         + rain_chance
         + "\nPrecipitation amount "
@@ -168,12 +168,12 @@ weather_agent = ConversableAgent(  # declaring agent
         "longditude": "longditude_created",
         "date": {"name": "requested_date"},
         "time": {"name": "requested_time"},
-        "tempreture": "predicted_tempreture",
+        "temperature": "predicted_temperature",
         "rain_chance": {"name": "predictedrain_chance"},
         "precipitation_amount": {"name": "predicted_precipitation_amount"},
         "wind_speed": "predicted_wind_speed",
     }
-    The location, date and time should be provided based off the location agent. The latitude and longditude you must use what is provided. The tempreture, rain chance, precipitation amount and wind speed you can make up the best you can.
+    The location, date and time should be provided based off the location agent. The latitude and longditude you must use what is provided. The temperature, rain chance, precipitation amount and wind speed you can make up the best you can.
     Return NOTHING else - no text or explanations just the raw JSON.""",  # system prompt to tailor output
     llm_config=llm_config,
 )
