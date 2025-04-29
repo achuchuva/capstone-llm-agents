@@ -9,6 +9,9 @@ import pandas as pd
 from retry_requests import retry
 from datetime import timedelta, timezone
 
+from autogen import GroupChat
+from autogen import GroupChatManager
+import autogen
 
 def weather_calculation(
     lat: str, lon: str, date: str, time: str
@@ -99,9 +102,9 @@ def weather_calculation(
 
     return (
         "\nThe weather results for laditude "
-        + str(latitude)
+        + str(lat)
         + ", longditude "
-        + str(longitude)
+        + str(lon)
         + " at "
         + time
         + " on the "
@@ -117,7 +120,7 @@ def weather_calculation(
         + wind_speed
     )
 
-
+'''
 ###Curent input field###
 latitude = (
     -38.0702
@@ -131,7 +134,7 @@ print(weather_results)
 # print(weather_results)#good for testing results
 # print(weather_results["date"])
 # print(weather_results["date"][1])
-
+'''
 from autogen import register_function
 
 
@@ -141,6 +144,13 @@ llm_config = {
     "api_type": "ollama",
     "temperature": 0.5,
 }
+
+user_proxy = autogen.UserProxyAgent(
+   name="User_proxy",
+   human_input_mode="ALWAYS",
+   code_execution_config=False,
+   description="A human user capable of working with Autonomous AI Agents.",
+)
 
 weather_agent = ConversableAgent(  # declaring agent
     name="request_agent",
@@ -196,6 +206,22 @@ location_agent = ConversableAgent(
     human_input_mode="NEVER",  # Never ask for human input.
 )
 
+temp_travel_agent = ConversableAgent(
+    name="travel_agent",
+    system_message="""Your Job is to work out the time it takes to get from one location to another.
+    Format the response as:
+    {
+        "start_location": {"name": "requested_location"},
+        "end_location": {"name": "laditude_created"},
+        "time_taken": "longditude_created",
+    }
+
+    do not include any other messages
+    """,
+    llm_config=llm_config,
+    human_input_mode="NEVER",  # Never ask for human input.
+)
+
 # https://microsoft.github.io/autogen/0.2/docs/tutorial/tool-use/
 # Register the calculator function to the two agents.
 register_function(
@@ -209,4 +235,15 @@ register_function(
 user_message = (
     "I want to know the weather in Pakenham victoria at 12:00 on the 21-04-2025"
 )
-result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=3)
+user_message2 = (
+    "I want to know how long it takes to get between pakenham and richmond station in victoria"
+)
+#result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=3)
+
+
+groupchat = GroupChat(agents=[weather_agent, location_agent, temp_travel_agent ], messages=[], max_round=6)
+
+manager = GroupChatManager(groupchat=groupchat, llm_config=llm_config)
+
+user_proxy.initiate_chat(manager, message=user_message2)
+
