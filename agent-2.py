@@ -238,6 +238,8 @@ user_message = (
 user_message2 = (
     "I want to know how long it takes to get between pakenham and richmond station in victoria"
 )
+
+#user_message3 = input("Enter a query here -->")
 #result = location_agent.initiate_chat(weather_agent, message=user_message, max_turns=3)
 
 
@@ -245,5 +247,5 @@ groupchat = GroupChat(agents=[weather_agent, location_agent, temp_travel_agent ]
 
 manager = GroupChatManager(groupchat=groupchat, llm_config=llm_config)
 
-user_proxy.initiate_chat(manager, message=user_message2)
+user_proxy.initiate_chat(manager, message=user_message)
 
