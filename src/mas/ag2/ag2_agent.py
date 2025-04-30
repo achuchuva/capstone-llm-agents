@@ -62,6 +62,9 @@ class AG2MASAgent(MASAgent):
             llm_config=copy_llm_config,
         )
 
+        # register tools
+        self.register_tools()
+
     def recreate_llm_config(self):
         """Recreate the LLM configuration for the agent."""
         # copy llm_config
@@ -84,6 +87,9 @@ class AG2MASAgent(MASAgent):
             system_message=self.system_message,
             llm_config=self.llm_config,
         )
+
+        # add tools
+        self.register_tools()
 
     # TODO: This is a hack. It recreates the agent with the new response format.
     # This may have unintended consequences which we are currently unaware of.
@@ -138,7 +144,7 @@ class AG2MASAgent(MASAgent):
 
         chat_result = self.ag2_agent.initiate_chat(
             recipient=self.ag2_agent,
-            max_turns=1,
+            max_turns=3,
             message={
                 "role": "user",
                 "content": prompt,
