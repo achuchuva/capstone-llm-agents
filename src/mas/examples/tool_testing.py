@@ -5,7 +5,7 @@
 
 from typing import Annotated
 
-from autogen import GroupChat, GroupChatManager
+from autogen import GroupChat, GroupChatManager, UserProxyAgent
 from app import App
 from mas.ag2.ag2_agent import AG2MASAgent
 from mas.ag2.ag2_tool import AG2Tool
@@ -59,10 +59,12 @@ def test_tool(app: App):
 
     agent.register_tools()
 
-    human = AG2MASAgent(
-        name="Human",
-        description="You are a human that asks questions.",
+    user_proxy = UserProxyAgent(
+        name="UserProxyAgent",
+        description="You are a user proxy agent that initiates the chat.",
         llm_config=app.config_manager.get_llm_config(use_tools=False),
+        human_input_mode="ALWAYS",
+        code_execution_config=False,
     )
 
     group_chat = GroupChat(
@@ -75,9 +77,8 @@ def test_tool(app: App):
         llm_config=app.config_manager.get_llm_config(use_tools=False),
     )
 
-    res = human.ag2_agent.initiate_chat(
+    res = user_proxy.initiate_chat(
         group_chat_manager,
-        max_turns=1,
         message={
             "role": "user",
             "content": "Give me a fact about the number 4123122.",
