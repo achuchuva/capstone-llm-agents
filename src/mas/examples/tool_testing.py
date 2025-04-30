@@ -88,7 +88,7 @@ def test_tool(app: App):
         group_chat_manager,
         message={
             "role": "user",
-            "content": "Give me a fact about the number 4123122.",
+            "content": "Give me a fact about the number 55.",
         },
         max_turns=1,
     )
