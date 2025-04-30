@@ -77,17 +77,26 @@ def test_tool(app: App):
         llm_config=app.config_manager.get_llm_config(use_tools=False),
     )
 
+    assistant = AG2MASAgent(
+        name="AssistantAgent",
+        description="You are an assistant agent.",
+        llm_config=app.config_manager.get_llm_config(use_tools=False),
+    )
+
     res = user_proxy.initiate_chat(
+        # assistant.ag2_agent,
         group_chat_manager,
         message={
             "role": "user",
             "content": "Give me a fact about the number 4123122.",
         },
+        max_turns=1,
     )
 
-    print("Res")
-    print(res)
+    messages = group_chat_manager.groupchat.messages
 
-    last_message = res.summary
-    print("Last message")
-    print(last_message)
+    last_message = messages[-1]
+
+    content = last_message["content"]
+
+    print(content)
