@@ -4,7 +4,9 @@ import sqlite3
 #https://www.geeksforgeeks.org/python-sqlite/
 
 print("hello world")
-
+'''
+Could possibly have different tables for different things stored in memory such as one for general infomation and another for storing which functions have been called already.
+'''
 #####short/session memory#####
 connection_obj = sqlite3.connect('short_memory.db')
 
@@ -47,7 +49,7 @@ table = """ CREATE TABLE IF NOT EXISTS LMEMORY (
 cursor_obj.execute(table)
 #cursor_obj.execute('''INSERT INTO LMEMORY (Title, Date, Content) VALUES ('Time to pakenham', '13-04-2025', 'It takes 32 minutes to get to pakenham')''')#Uncomment when you need to add default data
 
-print("Data Inserted in the table: ")
+print("Data within the long term table: ")
 data=cursor_obj.execute('''SELECT * FROM LMEMORY''')
 for row in data:
     print(row)
