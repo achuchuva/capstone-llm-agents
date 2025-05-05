@@ -1,7 +1,56 @@
 from autogen import AssistantAgent, UserProxyAgent, LLMConfig
 from autogen import register_function
+import sqlite3
+#https://www.geeksforgeeks.org/python-sqlite/
 
 print("hello world")
+
+#####short/session memory#####
+connection_obj = sqlite3.connect('short_memory.db')
+
+# cursor object
+cursor_obj = connection_obj.cursor()
+
+# Drop the SMEMORY ("short memeory") table if already exists.
+cursor_obj.execute("DROP TABLE IF EXISTS SMEMORY")
+
+# Creating table
+table = """ CREATE TABLE SMEMORY (
+            Title VARCHAR(255) NOT NULL,
+            Date VARCHAR(255) NOT NULL,
+            Content VARCHAR(255) NOT NULL
+        ); """
+
+cursor_obj.execute(table)
+
+print("Short term memory is Ready")
+
+# Close the connection
+connection_obj.close()
+
+#####Long term memory#####
+connection_obj = sqlite3.connect('long_memory.db')
+
+# cursor object
+cursor_obj = connection_obj.cursor()
+
+# Creating table
+table = """ CREATE TABLE IF NOT EXISTS LMEMORY (
+            Title VARCHAR(255) NOT NULL,
+            Date VARCHAR(255) NOT NULL,
+            Content VARCHAR(255) NOT NULL
+        ); """
+
+cursor_obj.execute(table)
+
+print("Long term Memory is Ready")
+
+# Close the connection
+connection_obj.close()
+
+
+
+#####Model, Agent and functions#####
 llm_config = {
     "model": "llama3.2",
     "api_type": "ollama",
