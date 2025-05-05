@@ -1,8 +1,12 @@
 """Basic evaluator will evaluate a message on two metrics: accuracy and relevance."""
 
+from mas.ag2.ag2_agent import AG2MASAgent
+from mas.ag2.ag2_task import AG2Task
 from mas.communication.evaluator import Evaluator
 from mas.communication.message import Message
 from mas.communication.message_metric import MessageMetric
+from mas.resources.bool import BoolResource
+from mas.resources.empty import EmptyResource
 
 
 class BasicEvaluator(Evaluator):
@@ -10,6 +14,16 @@ class BasicEvaluator(Evaluator):
 
     This class evaluates the message based on two metrics: accuracy and relevance.
     """
+
+    def __init__(self, relevance_checker: AG2MASAgent) -> None:
+        """Initialise the basic evaluator.
+
+        Args:
+            relevance_checker (AG2MASAgent): The relevance checker agent.
+        """
+        super().__init__()
+        self.relevance_checker = relevance_checker
+        """The relevance checker agent."""
 
     def _evaluate_accuracy(self, message: Message) -> MessageMetric:
         """Evaluate the accuracy of the message.
@@ -65,11 +79,25 @@ class BasicEvaluator(Evaluator):
             recipient_description = recipient.description
 
             # create a prompt to ask the LLM if the message is relevant
-            prompt = f"Is this resource '{message.resource}' relevant to the recipient '{recipient_description}'?"
+            prompt = f"Is this resource '{message.resource.model}' relevant to the recipient '{recipient_description}'?"
 
-            # TODO
+            task = AG2Task(
+                name="Check relevance",
+                description="Check if the message is relevant to the recipient",
+                input_resource=EmptyResource,
+                output_resource=BoolResource,
+                generate_str=lambda x: prompt,
+                agent=self.relevance_checker,
+            )
 
-            return True
+            response = task.do(EmptyResource(EmptyResource.EmptyModel()))
+
+            # if it messes up then assume that its not relevant
+
+            if not isinstance(response, BoolResource):
+                return False
+
+            return response.boolean.boolean
 
         # and just return 0 or 1
         relevance_metric = MessageMetric("relevance", float(int(is_relevant(message))))
