@@ -16,6 +16,7 @@ cursor_obj.execute("DROP TABLE IF EXISTS SMEMORY")
 
 # Creating table
 table = """ CREATE TABLE SMEMORY (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
             Title VARCHAR(255) NOT NULL,
             Date VARCHAR(255) NOT NULL,
             Content VARCHAR(255) NOT NULL
@@ -23,7 +24,7 @@ table = """ CREATE TABLE SMEMORY (
 
 cursor_obj.execute(table)
 
-print("Short term memory is Ready")
+#print("Short term memory is Ready")
 
 # Close the connection
 connection_obj.close()
@@ -34,16 +35,24 @@ connection_obj = sqlite3.connect('long_memory.db')
 # cursor object
 cursor_obj = connection_obj.cursor()
 
+#cursor_obj.execute("DROP TABLE IF EXISTS LMEMORY")#Uncomment when you need to wipe the table
 # Creating table
 table = """ CREATE TABLE IF NOT EXISTS LMEMORY (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
             Title VARCHAR(255) NOT NULL,
             Date VARCHAR(255) NOT NULL,
             Content VARCHAR(255) NOT NULL
         ); """
 
 cursor_obj.execute(table)
+#cursor_obj.execute('''INSERT INTO LMEMORY (Title, Date, Content) VALUES ('Time to pakenham', '13-04-2025', 'It takes 32 minutes to get to pakenham')''')#Uncomment when you need to add default data
 
-print("Long term Memory is Ready")
+print("Data Inserted in the table: ")
+data=cursor_obj.execute('''SELECT * FROM LMEMORY''')
+for row in data:
+    print(row)
+connection_obj.commit()
+#print("Long term Memory is Ready")
 
 # Close the connection
 connection_obj.close()
