@@ -20,10 +20,22 @@ class BasicEvaluator(Evaluator):
         Returns:
             MessageMetric: The accuracy metric of the message.
         """
-        # TODO placeholder, how it should work is to check if the message data matches the expected data
-        # and just return 0 or 1
-        accuracy_value = 0.95
-        accuracy_metric = MessageMetric("accuracy", accuracy_value)
+
+        def is_accurate(message: Message) -> bool:
+            """Check if the message is accurate.
+
+            Args:
+                message (Message): The message to check.
+
+            Returns:
+                bool: True if the message is accurate, False otherwise.
+            """
+            return isinstance(message.resource, message.expected_resource_type)
+
+        accuracy_metric = MessageMetric(
+            "accuracy",
+            float(int(is_accurate(message))),
+        )
 
         return accuracy_metric
 
@@ -37,9 +49,30 @@ class BasicEvaluator(Evaluator):
             MessageMetric: The relevance metric of the message.
         """
         # TODO placeholder, how it should work is it should ask the LLM if the message is relevant to the user task
+
+        def is_relevant(message: Message) -> bool:
+            """Check if the message is relevant.
+
+            Args:
+                message (Message): The message to check.
+
+            Returns:
+                bool: True if the message is relevant, False otherwise.
+            """
+
+            recipient = message.recipient
+
+            recipient_description = recipient.description
+
+            # create a prompt to ask the LLM if the message is relevant
+            prompt = f"Is this resource '{message.resource}' relevant to the recipient '{recipient_description}'?"
+
+            # TODO
+
+            return True
+
         # and just return 0 or 1
-        relevance_value = 0.85
-        relevance_metric = MessageMetric("relevance", relevance_value)
+        relevance_metric = MessageMetric("relevance", float(int(is_relevant(message))))
 
         return relevance_metric
 
