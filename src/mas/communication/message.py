@@ -30,3 +30,11 @@ class Message:
         self.recipient = recipient
         self.sender = sender
         self.metadata = metadata
+
+    def add_metadata(self, metadata: MessageMetadata) -> None:
+        """Add metadata to the message.
+
+        Args:
+            metadata (MessageMetadata): The metadata to add to the message.
+        """
+        self.metadata.append(metadata)
