@@ -1,6 +1,8 @@
 """Decision handler decides which checkpoint and what message to send to the checkpoint to resume communication."""
 
 from mas.communication.checkpoint import Checkpoint
+from mas.communication.decision import Decision
+from mas.communication.message import Message
 
 
 class DecisionHandler:
@@ -18,3 +20,16 @@ class DecisionHandler:
         """
         self.checkpoints = checkpoints
         """The list of checkpoints."""
+
+    def handle_decision(self, decision: Decision) -> Message:
+        """Handle the decision.
+
+        Args:
+            decision (Decision): The decision to handle.
+
+        Returns:
+            Message: The message that the agent sent to the checkpoint.
+        """
+        raise NotImplementedError(
+            "handle_decision method not implemented in DecisionHandler class. Please implement it in the subclass."
+        )
