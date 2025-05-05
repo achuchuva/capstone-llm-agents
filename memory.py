@@ -11,28 +11,44 @@ llm_config = {
 assistant_agent = AssistantAgent(
     name="Memory Assitant",
     llm_config=llm_config,
-    system_message="Your job is to tell the time using the time_calculation function. if you are asked anything that isn't time related don't call the function.",
+    system_message="You are to answer any questions you recive without the use of functions. Only use functions if your absolutely sure they are needed.",
 )
 
 user_proxy = UserProxyAgent(
     "user_proxy", code_execution_config={"work_dir": "coding", "use_docker": False}
 )
 
-def time_calculation(agent_input: str):
-    location_time = "The time for " + str(agent_input) + " is 12:00 PM"
+def time_calculation(location_input: str):
+    location_time = "The time for " + str(location_input) + " is 12:00 PM"
     return location_time
+
+def most_popular_transport(location_input: str):
+    location_transport = "The most popular transport for " + str(location_input) + " is cars"
+    return location_transport
+
 
 register_function(
     time_calculation,
     caller=assistant_agent,
     executor=user_proxy,
     name="time_calculation",  # By default, the function name is used as the tool name.
-    description="A function which uses latitude, longditude, date and time to calculate the weather",  # A description of the tool.
+    description="A function which calculates the time of a location",  # A description of the tool.
+)
+
+register_function(
+    most_popular_transport,
+    caller=assistant_agent,
+    executor=user_proxy,
+    name="most_popular_transport",  # By default, the function name is used as the tool name.
+    description="A function which calculates the most popular transport mode for a location",  # A description of the tool.
 )
 
 message = "What is the time for pakenham?."
+message2 = "What is the best meal?"
+message3 = "What is the most popular transport for melbourne?"
+
 user_proxy.initiate_chat(
     assistant_agent,
-    message=message,
+    message=message2,
     max_turns=2
 )
