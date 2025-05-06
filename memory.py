@@ -104,6 +104,9 @@ def save_to_long_memory(Title: str, Date: str, Content: str):
         result = "An error has occured in the formatting"
     return result
 
+def memory_test(title_query: str):
+    return ["Adriens cooking contest results", "Neds cooding adventures", "Antons knowledge base values", "Time to pakenham", "Time to swinburne"]
+
 
 register_function(
     time_calculation,
@@ -127,6 +130,14 @@ register_function(
     executor=user_proxy,
     name="save_to_long_memory",  # By default, the function name is used as the tool name.
     description="A function used to save valid results to a memory database. Format as a breif title of the results, data in dd-mm-yyyy, and then the content of the results. Do not leave any parts blank. ",  # A description of the tool.
+)
+
+register_function(
+    memory_test,
+    caller=assistant_agent,
+    executor=user_proxy,
+    name="Load_memory",  # By default, the function name is used as the tool name.
+    description="A function used to Load your memory of previouse results. If you find what you are looking for return the number sequence of the array.",  # A description of the tool.
 )
 
 message = "What is the time for pakenham?."
