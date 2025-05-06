@@ -15,7 +15,7 @@ def run_database_kb(app: App):
     """
     query = {
         "role": "user",
-        "content": "What are the names of customers that are located in United Kingdom?",
+        "content": "What are the names of customers that are located in Canada?",
     }
 
     database_schema_kb = get_database_schema()
