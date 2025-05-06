@@ -3,14 +3,13 @@ input:
       id: 0
       args:
         ingredients:
+          - olive oil
           - flour
-          - sugar
-          - eggs
-        cooking_time: 30
+          - tomato
+        cooking_time: 60
         dietary_requirement:
-          - vegetarian
-          - gluten-free
-        flavour_profile: "sweet"
+          - lactose free
+        flavour_profile: "savoury"
 resources:
   - recipe:
       id: 1

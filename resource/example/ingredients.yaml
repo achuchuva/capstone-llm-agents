@@ -1,0 +1,13 @@
+input:
+  - user_request:
+      id: 0
+      args:
+        recipe_name: "Lactose-Free Savory Tomato Flatbread"
+
+resources:
+  - recipe:
+      id: 1
+
+output:
+  - recipe:
+      id: 1

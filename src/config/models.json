@@ -2,13 +2,9 @@
     "models": [
         {
             "api_type": "ollama",
-            "model": "gemma3"
-        },
-        {
-            "api_type": "ollama",
             "model": "llama3.2"
         }
     ],
     "default_model": 0,
-    "default_model_with_tools": 1
+    "default_model_with_tools": 0 
 }

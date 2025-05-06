@@ -1,0 +1,38 @@
+input:
+  - user_request:
+      id: 0
+      args:
+        recipe_name: "Lactose-Free Savory Tomato Flatbread"
+        ingredient_list:
+          - name: "Flour"
+            measurement: "2 cups"
+          - name: "Olive oil"
+            measurement: "1/4 cup"
+          - name: "Salt"
+            measurement: "1 teaspoon"
+          - name: "Sugar"
+            measurement: "1 teaspoon"
+          - name: "Active dry yeast"
+            measurement: "1 packet (2 1/4 teaspoons)"
+          - name: "Warm water"
+            measurement: "1 cup"
+          - name: "Lactose-free milk"
+            measurement: "1 cup"
+          - name: "Dried oregano"
+            measurement: "1 teaspoon"
+          - name: "Dried basil"
+            measurement: "1 teaspoon"
+          - name: "Garlic powder"
+            measurement: "1/2 teaspoon"
+          - name: "Black pepper"
+            measurement: "1/4 teaspoon"
+          - name: "Fresh tomatoes (or 1 can of diced tomatoes)"
+            measurement: "2 cups"
+
+resources:
+  - recipe:
+      id: 1
+
+output:
+  - recipe:
+      id: 1
