@@ -1,5 +1,6 @@
 from autogen import AssistantAgent, UserProxyAgent, register_function
 import sqlite3
+import datetime
 
 SHORT_MEMORY_DB = "short_memory.db"
 LONG_MEMORY_DB = "long_memory.db"
@@ -42,9 +43,10 @@ def setup_long_memory():
     conn.close()
 
 
-def save_to_long_memory(Title: str, Date: str, ZContent: str) -> str:
+def save_to_long_memory(Title: str, ZContent: str) -> str:
     try:
         conn = sqlite3.connect(LONG_MEMORY_DB)
+        Date = datetime.datetime.now().strftime("%d-%m-%Y")
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO LMEMORY (Title, Date, Content) VALUES (?, ?, ?)",
@@ -58,7 +60,7 @@ def save_to_long_memory(Title: str, Date: str, ZContent: str) -> str:
         conn.close()
 
 
-def get_all_memory_titles() -> str:
+def get_all_long_memory_titles() -> str:
 
     conn = sqlite3.connect(LONG_MEMORY_DB)
     cursor = conn.cursor()
@@ -72,7 +74,7 @@ def get_all_memory_titles() -> str:
         return "No content found in long-term memory."
 
 
-def load_memory_by_index(selection_index: int):
+def load_long_memory_by_index(selection_index: int):
     conn = sqlite3.connect(LONG_MEMORY_DB)
     cursor = conn.cursor()
 
@@ -142,7 +144,7 @@ register_function(
 )
 
 register_function(
-    get_all_memory_titles,
+    get_all_long_memory_titles,
     caller=assistant_agent,
     executor=user_proxy,
     name="Load_memory",
@@ -150,7 +152,7 @@ register_function(
 )
 
 register_function(
-    load_memory_by_index,
+    load_long_memory_by_index,
     caller=assistant_agent,
     executor=user_proxy,
     name="Load_memory_by_index",
