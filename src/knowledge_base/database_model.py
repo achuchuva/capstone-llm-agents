@@ -13,7 +13,7 @@ def run_database_query(query: str, database_path: str = "database/chinook.db") -
         database_path (str): The path to the SQLite database file.
 
     Returns:
-        str: JSON string representing the query results.
+        str: JSON string representing the query and the results.
     """
 
     # Connect to SQLite database via relative path
@@ -36,7 +36,7 @@ def run_database_query(query: str, database_path: str = "database/chinook.db") -
     # Close the connection
     conn.close()
 
-    return json_result
+    return "SQL Query:\n" + query + "\nRESULT:\n" + json_result
 
 
 def clean_sql_string(raw_sql: str) -> str:

@@ -15,7 +15,7 @@ def run_database_kb(app: App):
     """
     query = {
         "role": "user",
-        "content": "What are the names of customers that are located in Norway?",
+        "content": "What are the names of customers that are located in United Kingdom?",
     }
 
     database_schema_kb = get_database_schema()
@@ -31,8 +31,6 @@ def run_database_kb(app: App):
 
     sql_query = clean_sql_string(response["content"])
     sql_query_kb = run_database_query(query=sql_query)
-
-    print(f"SQL Query: {sql_query_kb}")
 
     sql_query_agent = SQLQueryAgent(
         name="SQL Query Agent",

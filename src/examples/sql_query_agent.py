@@ -25,6 +25,7 @@ class SQLQueryAgent(ConversableAgent):
             Answer ONLY using the following knowledge base:\n\n
             {knowledge_base}\n\n
             If the question does not match the knowledge base answer at all, say 'I'm sorry, I don't have information on that.'
+            ANSWER IN ENGLISH NOT JSON. IF THERE ARE MANY RESULTS, ANSWER IN A TABLE FORMAT.
             """
 
         super().__init__(
