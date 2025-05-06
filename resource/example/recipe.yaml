@@ -1,0 +1,20 @@
+input:
+  - user_request:
+      id: 1
+      args:
+        ingredients:
+          - flour
+          - sugar
+          - eggs
+        cooking_time: 30
+        dietary_requirement:
+          - vegetarian
+          - gluten-free
+        flavour_profile: "sweet"
+resources:
+  - recipe:
+      id: 1
+
+output:
+  - recipe:
+      id: 1
