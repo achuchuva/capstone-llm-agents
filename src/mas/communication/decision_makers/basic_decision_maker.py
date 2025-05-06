@@ -38,12 +38,13 @@ class BasicDecisionMaker(DecisionMaker):
             metric for metric in metrics if metric.name == "relevance"
         )
 
-        # if the accuracy and relevance metrics are not present, return a default decision
+        # TODO how to handle if metrics are bad?
+        # no metrics, we blame the sender (kind of arbitrary)
         if accuracy_metric is None or relevance_metric is None:
             return Decision(
                 metrics,
                 message,
-                DecisionEnum.REJECT,
+                DecisionEnum.BLAME,
             )
 
         # otherwise we make a decision based on the accuracy and relevance metrics
@@ -55,6 +56,11 @@ class BasicDecisionMaker(DecisionMaker):
         if is_accurate and is_relevant:
             decision_enum = DecisionEnum.PROCEED
         else:
-            decision_enum = DecisionEnum.REJECT
+
+            # TODO if we have some possible solutions that could be used to fix the message
+            # then we try them and see if they work
+            # if they still don't work, we blame the sender
+
+            decision_enum = DecisionEnum.BLAME
 
         return Decision(metrics, message, decision_enum)

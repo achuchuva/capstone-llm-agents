@@ -12,8 +12,8 @@ class DecisionEnum(Enum):
     PROCEED = "PROCEED"
     """The agent decides to proceed with the message request."""
 
-    REJECT = "REJECT"
-    """The agent does not know how to handle the message request."""
+    BLAME = "BLAME"
+    """The agent decides to blame the sender of the message request, asking them to fix the message request."""
 
-    ASK_FOR_CLARIFICATION = "CLARIFY"
-    """The agent ask to clarify / fix aspects of the message request."""
+    TRY_TO_FIX = "TRY_TO_FIX"
+    """The agent decides to try to fix the message request."""
