@@ -8,14 +8,27 @@ from mas.task import Task
 
 class UserRequestResource(BaseResource):
     class UserRequestModel(BaseModel):
-        '''user specifications'''
-        ingredients: Optional[List[str]] # its own data struc?? or is that separate
+        """user specifications"""
+
+        ingredients: Optional[List[str]]  # its own data struc?? or is that separate
         dietary_requirement: Optional[List[str]]
-        cooking_time: Optional[int] #mins
+        cooking_time: Optional[int]  # mins
         flavour_profile: Optional[str]
 
-        def __init__(self, *, ingredients: Optional[List[str]] = None, dietary_requirement: Optional[List[str]] = None, cooking_time: Optional[int] = None, flavour_profile: Optional[str] = None,):
-            super().__init__(ingredients=ingredients, dietary_requirement=dietary_requirement, cooking_time=cooking_time, flavour_profile=flavour_profile)
+        def __init__(
+            self,
+            *,
+            ingredients: Optional[List[str]] = None,
+            dietary_requirement: Optional[List[str]] = None,
+            cooking_time: Optional[int] = None,
+            flavour_profile: Optional[str] = None,
+        ):
+            super().__init__(
+                ingredients=ingredients,
+                dietary_requirement=dietary_requirement,
+                cooking_time=cooking_time,
+                flavour_profile=flavour_profile,
+            )
             self.ingredients = ingredients
             self.dietary_requirement = dietary_requirement
             self.cooking_time = cooking_time
@@ -29,15 +42,17 @@ class UserRequestResource(BaseResource):
     def get_model_type() -> type[UserRequestModel]:
         return UserRequestResource.UserRequestModel
 
+
 class RecipeResource(UserRequestResource):
     class RecipeModel(BaseModel):
         recipe_name: str
+
         def __init__(self, *, recipe_name: str):
             super().__init__(recipe_name=recipe_name)
             self.recipe_name = recipe_name
 
-    def __init__(self, recipe: RecipeModel):
-        super().__init__(recipe)
+    def __init__(self, recipe_name: RecipeModel):
+        super().__init__(recipe_name)
         self.recipe_name = recipe_name
 
     @staticmethod
@@ -51,7 +66,7 @@ class FindRecipeTask(Task[UserRequestResource, RecipeResource]):
 
         recipe_name = f""
 
-        '''append optional attributes'''
+        """append optional attributes"""
         if request.flavour_profile:
             recipe_name += f"{request.flavour_profile} "
 
