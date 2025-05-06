@@ -1,0 +1,21 @@
+input:
+  - user_request:
+      id: 1
+      args:
+        user_request: "cats"
+
+resources:
+  - recipe:
+      id: 1
+
+  - recipe:
+      id: 2
+
+
+output:
+  - recipe:
+      id: 1
+  - recipe:
+      id: 2
+
+      # ?????????

@@ -22,22 +22,22 @@ def recipe_agent_mas(app: App):
     alias.add_resource_alias("topic", UserRequestResource)
 
     mas = MultiAgentSystem(alias)
+    #mas_query = MASQuery.from_yaml("Generate a recipe name based on user preferences.") # i guess?????
+    #mas_query = MASQuery.from_yaml("recipe.yaml")
+    #mas_query = MASQuery(query="Generate a recipe name based on user preferences.")
 
-    #mas_query = MASQuery.from_query_string("Generate a recipe name based on user preferences.") # i guess?????
-    mas_query = MASQuery.from_yaml("recipe.yaml")
+    mas_query = MASQuery(
+        query="Generate a recipe name based on user preferences.",
+        input=[],  
+        resources=[], 
+        output=[]  
+    )
 
     agent = AG2MASAgent(
         name="RecipeAgent",
         description="You are a recipe generation assistant.",
         #llm_config=app.config_manager.get_llm_config(use_tools=False),
-        llm_config={
-            "models": [
-                {"api_type": "ollama", "model": "gemma3"},
-                {"api_type": "ollama", "model": "llama3.2"}
-            ],
-            "default_model": 0,
-            "default_model_with_tools": 1
-        },  # Direct config for models
+        llm_config=app.config_manager.get_llm_config(use_tools=False),
     )
 
     find_recipe_task = AG2Task(
@@ -51,18 +51,26 @@ def recipe_agent_mas(app: App):
         agent=agent,
     )
 
+    descriptor_mapping = dict[str, Task] ={
+        "generate_recipe_name": find_recipe_task,
+    }
+
     mas.add_task(find_recipe_task)
 
     # do a few of these for the tests
     '''Test 1: Reasonable Request'''
     user_request = UserRequestResource(UserRequestResource.UserRequestModel(
-        taste="sweet",
-        dietary="lactose intolerance",
+        flavour_profile="sweet",
+        dietary_requirement=["lactose intolerance"],
         ingredients=["strawberry", "chocolate", "egg"],
-        time_to_cook=60 #mins
+        cooking_time=60 # minutes
     ))
 
-    output_resources = mas.solve_query(mas_query, {"generate_recipe_name": find_recipe_task}, input_resource=user_request)
+    mas_query.input = {
+        "topic": user_request.dict()
+    } #???
+    
+    output_resources = mas.solve_query(mas_query, descriptor_mapping)
 
     print("Output:")
     for output_resource in output_resources:
