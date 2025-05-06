@@ -1,16 +1,16 @@
-"""Module for an autogen agent that expects a knowledge base about train timetables."""
+"""Module for an autogen agent that expects a knowledge base about returned SQL queries."""
 
 from autogen import ConversableAgent, LLMConfig
 
 
-class TrainTimetableAgent(ConversableAgent):
+class SQLQueryAgent(ConversableAgent):
     """
-    An (example) module for an autogen agent that contains a knowledge base about train timetables.
+    A module for an autogen agent that contains a knowledge base about arbitrary data returned from an SQL query.
     """
 
     def __init__(self, name: str, llm_config: LLMConfig, knowledge_base: str):
         """
-        Initialise the TrainTimetableAgent with a name.
+        Initialise the CustomerAgent with a name.
 
         Args:
             name (str): The name of the agent.
@@ -19,7 +19,8 @@ class TrainTimetableAgent(ConversableAgent):
         """
 
         self.knowledge_base = knowledge_base
-        system_message = f"""You are a train timetable assistant. You can answer questions about train timetables.
+        system_message = f"""You are a SQL query assistant.
+            You can answer questions about anything related to the knowledge base of SQL query results.
             Answer ONLY using the following knowledge base:\n\n
             {knowledge_base}\n\n
             If you do not know the answer based on the knowledge base, say 'I'm sorry, I don't have information on that.'
