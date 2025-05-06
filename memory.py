@@ -71,7 +71,7 @@ llm_config = {
 assistant_agent = AssistantAgent(
     name="Memory Assitant",
     llm_config=llm_config,
-    system_message="You are to answer any questions you recive without the use of functions. Only use functions if your absolutely sure they are needed.",
+    system_message="You are to answer any questions you recive To the best of your knowledge. Only save results to your long memory when you know the answer is correct.",
 )
 
 user_proxy = UserProxyAgent(
@@ -85,6 +85,24 @@ def time_calculation(location_input: str):
 def most_popular_transport(location_input: str):
     location_transport = "The most popular transport for " + str(location_input) + " is cars"
     return location_transport
+
+def save_to_long_memory(Title: str, Date: str, Content: str):
+    connection_obj = sqlite3.connect('long_memory.db')
+    # cursor object
+    cursor_obj = connection_obj.cursor()
+    cursor_obj.execute(f"INSERT INTO LMEMORY (Title, Date, Content) VALUES ('{Title}', '{Date}', '{Content}')")
+    data=cursor_obj.execute('''SELECT * FROM LMEMORY''')
+    for row in data:
+        print(row)
+    connection_obj.commit()
+    connection_obj.close()
+    result = ""
+    error = False
+    if error == False:#####Later will create error handeling if we continue on with the SQL database#####
+        result = "Content saved to memeory as --> (Title: " + Title + " Date: " + Date + " Content: " + Content + ")"
+    else:
+        result = "An error has occured in the formatting"
+    return result
 
 
 register_function(
@@ -103,12 +121,21 @@ register_function(
     description="A function which calculates the most popular transport mode for a location",  # A description of the tool.
 )
 
+register_function(
+    save_to_long_memory,
+    caller=assistant_agent,
+    executor=user_proxy,
+    name="save_to_long_memory",  # By default, the function name is used as the tool name.
+    description="A function used to save valid results to a memory database. Format as a breif title of the results, data in dd-mm-yyyy, and then the content of the results. Do not leave any parts blank. ",  # A description of the tool.
+)
+
 message = "What is the time for pakenham?."
 message2 = "What is the best meal?"
 message3 = "What is the most popular transport for melbourne?"
+message4 = "Prompt the assistent agent to be prepeared for further questions"
 
 user_proxy.initiate_chat(
     assistant_agent,
-    message=message2,
-    max_turns=2
+    message=message4,
+    max_turns=5
 )
