@@ -42,7 +42,7 @@ def setup_long_memory():
     conn.commit()
     conn.close()
 
-
+#####Long memory functions#####
 def save_to_long_memory(Title: str, ZContent: str) -> str:
     try:
         conn = sqlite3.connect(LONG_MEMORY_DB)
@@ -81,6 +81,55 @@ def load_long_memory_by_index(selection_index: int):
     cursor.execute(
         """
         SELECT ID, Title, Date, Content FROM LMEMORY
+        WHERE ID = ?
+        """,
+        (selection_index,),
+    )
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        return f"ID: {result[0]}, Title: {result[1]}, Date: {result[2]}, Content: {result[3]}"
+    else:
+        return "No content found for the given ID."
+#####Short memory functions#####
+def save_to_short_memory(Title: str, ZContent: str) -> str:
+    try:
+        conn = sqlite3.connect(SHORT_MEMORY_DB)
+        Date = datetime.datetime.now().strftime("%d-%m-%Y")
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO SMEMORY (Title, Date, Content) VALUES (?, ?, ?)",
+            (Title, Date, ZContent),
+        )
+        conn.commit()
+        return f"Content saved to memory as --> (Title: {Title} Date: {Date} Content: {ZContent})"
+    except Exception as e:
+        return f"An error occurred while saving: {e}"
+    finally:
+        conn.close()
+
+
+def get_all_short_memory_titles() -> str:
+
+    conn = sqlite3.connect(SHORT_MEMORY_DB)
+    cursor = conn.cursor()
+    cursor.execute("SELECT ID, Title FROM SMEMORY")
+    results = cursor.fetchall()
+    conn.close()
+
+    if results:
+        return "\n".join([f"ID: {row[0]}, Title: {row[1]}" for row in results])
+    else:
+        return "No content found in short-term memory."
+
+
+def load_short_memory_by_index(selection_index: int):
+    conn = sqlite3.connect(SHORT_MEMORY_DB)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT ID, Title, Date, Content FROM SMEMORY
         WHERE ID = ?
         """,
         (selection_index,),
@@ -135,6 +184,7 @@ register_function(
     description="Determine the most popular mode of transport for a location.",
 )
 
+#Long term memory
 register_function(
     save_to_long_memory,
     caller=assistant_agent,
@@ -147,7 +197,7 @@ register_function(
     get_all_long_memory_titles,
     caller=assistant_agent,
     executor=user_proxy,
-    name="Load_memory",
+    name="Load_all_long_memory",
     description="Load all memory titles from the long-term memory database.",
 )
 
@@ -155,10 +205,34 @@ register_function(
     load_long_memory_by_index,
     caller=assistant_agent,
     executor=user_proxy,
-    name="Load_memory_by_index",
+    name="load_long_memory_by_index",
     description="Load memory by index from the long-term memory database.",
 )
 
+#Short term memory
+register_function(
+    save_to_short_memory,
+    caller=assistant_agent,
+    executor=user_proxy,
+    name="save_to_short_memory",
+    description="Save valid results to the short-term memory database.",
+)
+
+register_function(
+    get_all_short_memory_titles,
+    caller=assistant_agent,
+    executor=user_proxy,
+    name="Load_all_short_memory",
+    description="Load all memory titles from the short-term memory database.",
+)
+
+register_function(
+    load_short_memory_by_index,
+    caller=assistant_agent,
+    executor=user_proxy,
+    name="load_short_memory_by_index",
+    description="Load memory by index from the short-term memory database.",
+)
 
 if __name__ == "__main__":
     setup_short_memory()
@@ -167,5 +241,5 @@ if __name__ == "__main__":
     user_proxy.initiate_chat(
         assistant_agent,
         message="Prompt the assistant agent to be prepared for further questions.",
-        max_turns=15,
+        max_turns=20,
     )
