@@ -42,16 +42,16 @@ def setup_long_memory():
     conn.close()
 
 
-def save_to_long_memory(Title: str, Date: str, Content: str) -> str:
+def save_to_long_memory(Title: str, Date: str, ZContent: str) -> str:
     try:
         conn = sqlite3.connect(LONG_MEMORY_DB)
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO LMEMORY (Title, Date, Content) VALUES (?, ?, ?)",
-            (Title, Date, Content),
+            (Title, Date, ZContent),
         )
         conn.commit()
-        return f"Content saved to memory as --> (Title: {Title} Date: {Date} Content: {Content})"
+        return f"Content saved to memory as --> (Title: {Title} Date: {Date} Content: {ZContent})"
     except Exception as e:
         return f"An error occurred while saving: {e}"
     finally:
