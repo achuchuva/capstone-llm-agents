@@ -231,8 +231,11 @@ class MultiAgentSystem:
         for clause in horn_clauses:
             horn_kb.add_clause(clause)
 
-        forward_chain_plans: list[list[HornClause]] = []
+        print("Horn KB:")
+        for clause in horn_kb.horn_clauses:
+            print(clause)
 
+        forward_chain_plans: list[list[HornClause]] = []
         # forward chain over each output resource
         # TODO optimise, bit expensive (reiterating for each resource)
         for output_resource in query_output.output_resources:

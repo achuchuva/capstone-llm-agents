@@ -42,7 +42,7 @@ def recipe_agent_mas(app: App):
         input_resource=UserRequestResource,
         output_resource=RecipeResource,
         generate_str=generate_str_using_template(
-            "Generate a recipe name conforming to the following specifications: '{request}'"
+            "Generate a recipe name conforming to the following specifications: '{ingredients}', '{dietary_requirement}', '{cooking_time}', '{flavour_profile}'.",
         ),
         agent=agent,
     )
