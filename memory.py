@@ -159,12 +159,11 @@ register_function(
 
 
 if __name__ == "__main__":
-    print("Initializing memory databases...")
     setup_short_memory()
-    # setup_long_memory()
+    setup_long_memory()
 
     user_proxy.initiate_chat(
         assistant_agent,
         message="Prompt the assistant agent to be prepared for further questions.",
-        max_turns=10,
+        max_turns=15,
     )
