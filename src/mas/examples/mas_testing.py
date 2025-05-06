@@ -12,7 +12,7 @@ from mas.task import Task
 from mas.tasks.write_sentence import SentenceResource, TopicResource
 from utils.string_template import generate_str_using_template
 
-def test_basic_mas():
+def test_basic_mas(app: App):
     """Test basic MAS."""
 
     alias = ResourceAlias()

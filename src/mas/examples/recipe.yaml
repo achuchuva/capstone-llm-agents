@@ -1,0 +1,15 @@
+input:
+  - generate_recipe_name:
+      id: 0
+      args:
+        request: "Generate a recipe name based on user preferences."
+resources:
+  - recipe:
+      id: 1
+      descriptors:
+        output:
+          recipe:
+            id: 1
+output:
+  - recipe:
+      id: 1

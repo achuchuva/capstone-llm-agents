@@ -1,5 +1,5 @@
 """Recipe"""
-#from app import App
+from app import App
 
 from mas.ag2.ag2_agent import AG2MASAgent
 from mas.ag2.ag2_task import AG2Task
@@ -12,7 +12,7 @@ from mas.recipe_tasks.find_recipe import UserRequestResource, RecipeResource
 from utils.string_template import generate_str_using_template
 
 
-def recipe_agent_mas():
+def recipe_agent_mas(app: App):
     '''put description here ig'''
 
     alias = ResourceAlias()
@@ -23,9 +23,8 @@ def recipe_agent_mas():
 
     mas = MultiAgentSystem(alias)
 
-    # yaml_file = "./resource/example/example3.yaml"
-
-    mas_query = MASQuery.from_query_string("Generate a recipe name based on user preferences.") # i guess?????
+    #mas_query = MASQuery.from_query_string("Generate a recipe name based on user preferences.") # i guess?????
+    mas_query = MASQuery.from_yaml("recipe.yaml")
 
     agent = AG2MASAgent(
         name="RecipeAgent",
