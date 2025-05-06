@@ -1,4 +1,4 @@
-"""Module for an autogen agent that expects a knowledge base about a database schema."""
+"""Module for autogen agents that expect knowledge bases about a database schema."""
 
 from autogen import ConversableAgent, LLMConfig
 
@@ -11,7 +11,7 @@ class DatabaseAgent(ConversableAgent):
 
     def __init__(self, name: str, llm_config: LLMConfig, knowledge_base: str):
         """
-        Initialise the CustomerAgent with a name.
+        Initialise the DatabaseAgent with a name.
 
         Args:
             name (str): The name of the agent.

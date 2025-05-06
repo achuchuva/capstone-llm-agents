@@ -10,7 +10,7 @@ class SQLQueryAgent(ConversableAgent):
 
     def __init__(self, name: str, llm_config: LLMConfig, knowledge_base: str):
         """
-        Initialise the CustomerAgent with a name.
+        Initialise the SQLQueryAgent with a name.
 
         Args:
             name (str): The name of the agent.
@@ -19,11 +19,12 @@ class SQLQueryAgent(ConversableAgent):
         """
 
         self.knowledge_base = knowledge_base
-        system_message = f"""You are a SQL query assistant.
-            You can answer questions about anything related to the knowledge base of SQL query results.
+        system_message = f"""You are a response formatter assistant.
+            You can answer questions by using your knowledge base.
+            Assume that the knowledge base is the answer to the query.
             Answer ONLY using the following knowledge base:\n\n
             {knowledge_base}\n\n
-            If you do not know the answer based on the knowledge base, say 'I'm sorry, I don't have information on that.'
+            If the question does not match the knowledge base answer at all, say 'I'm sorry, I don't have information on that.'
             """
 
         super().__init__(
