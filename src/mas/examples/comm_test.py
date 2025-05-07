@@ -15,7 +15,7 @@ from mas.communication.decision_handlers.basic_decision_handler import (
 from mas.communication.decision_makers.basic_decision_maker import BasicDecisionMaker
 from mas.communication.evaluators.basic_evaluator import BasicEvaluator
 from mas.multi_agent_system import MultiAgentSystem
-from mas.query.mas_query import MASQuery
+from mas.query.mas_query import MASQuery, ResourceArgModel
 from mas.resource_alias import ResourceAlias
 from mas.resources.empty import EmptyResource
 from mas.task import Task
@@ -51,6 +51,12 @@ def test_comm_proto_mas(app: App):
     yaml_file = "./resource/example/number.yaml"
 
     mas_query = MASQuery.from_yaml(yaml_file)
+
+    # wait for user input
+
+    user_input = input("[USER]: ")
+
+    mas_query.input[0]["topic"].args["topic"] = user_input
 
     agent = AG2MASAgent(
         name="NumberAssistantAgent",
@@ -98,7 +104,7 @@ def test_comm_proto_mas(app: App):
     try:
         output_resources = mas.solve_query(mas_query, descriptor_mapping)
     except Exception as e:
-        print("[AGENT]: I'm sorry, I can't help with that task.")
+        print("[AGENT]: I'm sorry, I can't help with that. Ask me about numbers.")
         return
     # print the output resources
     for output_resource in output_resources:
