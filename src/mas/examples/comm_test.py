@@ -7,6 +7,13 @@ from app import App
 from mas.ag2.ag2_agent import AG2MASAgent
 from mas.ag2.ag2_task import AG2Task
 from mas.base_resource import BaseResource
+from mas.communication.checkpoint import Checkpoint
+from mas.communication.communication_interface import CommunicationInterface
+from mas.communication.decision_handlers.basic_decision_handler import (
+    BasicDecisionHandler,
+)
+from mas.communication.decision_makers.basic_decision_maker import BasicDecisionMaker
+from mas.communication.evaluators.basic_evaluator import BasicEvaluator
 from mas.multi_agent_system import MultiAgentSystem
 from mas.query.mas_query import MASQuery
 from mas.resource_alias import ResourceAlias
@@ -46,8 +53,8 @@ def test_comm_proto_mas(app: App):
     mas_query = MASQuery.from_yaml(yaml_file)
 
     agent = AG2MASAgent(
-        name="AssistantAgent",
-        description="You are an assistant.",
+        name="NumberAssistantAgent",
+        description="You are an assistant that knows all about numbers.",
         llm_config=app.config_manager.get_llm_config(use_tools=False),
     )
 
@@ -57,7 +64,7 @@ def test_comm_proto_mas(app: App):
         input_resource=TopicResource,
         output_resource=SentenceResource,
         generate_str=spoofed_error_generate_str(
-            "Get a fact about the number '{topic}'",
+            "'{topic}'",
         ),
         agent=agent,
     )
@@ -75,6 +82,18 @@ def test_comm_proto_mas(app: App):
     # add tasks to mas
     for task in example_tasks:
         mas.add_task(task)
+
+    checkpoint = Checkpoint(agent)
+
+    agent_interface = CommunicationInterface(
+        handler=BasicDecisionHandler(checkpoint),
+        evaluator=BasicEvaluator(),
+        decision_maker=BasicDecisionMaker([]),
+    )
+
+    mas.add_agent(agent)
+
+    mas.communication_protocol.add_agent_interface(agent, agent_interface)
 
     output_resources = mas.solve_query(mas_query, descriptor_mapping)
 

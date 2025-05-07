@@ -127,6 +127,14 @@ class CommunicationProtocol:
         # get interface
         interface = self.get_agent_interface(recipient)
 
+        print(f"Handling message: {message}")
+        print(f"Recipient: {recipient}")
+
+        # all interfaces
+        print(f"All interfaces: {self.agent_to_interface}")
+
+        print(f"Interface: {interface}")
+
         # has no interface, assume that message can processed automatically
         if interface is None:
             return message
