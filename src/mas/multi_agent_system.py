@@ -366,7 +366,7 @@ class MultiAgentSystem:
                         plan, plan_runner.step, actual_message
                     )
 
-                    # update the plan runner
+                    # update the plan runner with the new plan
                     plan_runner.update_plan(plan, step)
 
                 # NOTE: we keep the else here so that on the next run we can recheck the plan

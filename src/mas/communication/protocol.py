@@ -29,15 +29,25 @@ class CommunicationProtocol:
         self.checkpoint_index = 0
         """Index of the current checkpoint in the communication protocol."""
 
+        self.max_retries = 10
+        """Maximum number of retries for the communication protocol."""
+
+        self.retries = 0
+        """Number of retries for the communication protocol."""
+
+    def reset(self):
+        """Reset the communication protocol."""
+        self.checkpoint_index = 0
+        self.retries = 0
+
     def could_not_satisfy_query(self) -> bool:
         """Check if the communication protocol has failed to satisfy the query.
 
         Returns:
             bool: True if the communication protocol has failed, False otherwise.
         """
-        # TODO
-        # check if we have failed at the checkpoint n times
-        return False
+        # TODO check if we have failed at the checkpoint n times rather than total across all checkpoints
+        return self.retries >= self.max_retries
 
     def add_checkpoint(self, checkpoint: Checkpoint):
         """Add a checkpoint to the communication protocol.
@@ -135,5 +145,19 @@ class CommunicationProtocol:
         Returns:
             tuple[QueryPlan, int]: The new plan and the index of where to resume the plan.
         """
+
+        # NOTE: If the solution is to retry, it will already be handled
+        # because the plan naturally resumes at the same step
+
+        # NOTE: But if the solution is to change the actual message sent then we need to update the plan
+
         # TODO solutions should update the plan
+        # unless the checkpoint wants to raise an error upstream (e.g. to the previous checkpoint)
+        # this means that all agents after the checkpoint do not know what to do
+        # because we don't want to go back to the previous checkpoint (maybe later we can support this)
+        # so we should say that the query cannot be satisfied
+
+        # increment retries
+        self.retries += 1
+
         return plan, step
