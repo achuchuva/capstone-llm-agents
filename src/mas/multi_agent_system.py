@@ -331,7 +331,7 @@ class MultiAgentSystem:
 
                 if communication_protocol.could_not_satisfy_query():
                     # TODO send to user
-                    raise ValueError("The query could not be completed.")
+                    raise ValueError("The MAS could not satisfy the query. ")
 
                 # get the next step in the plan
                 next_step = plan_runner.get_next_step()

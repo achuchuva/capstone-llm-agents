@@ -95,9 +95,15 @@ def test_comm_proto_mas(app: App):
 
     mas.communication_protocol.add_agent_interface(agent, agent_interface)
 
-    output_resources = mas.solve_query(mas_query, descriptor_mapping)
-
+    try:
+        output_resources = mas.solve_query(mas_query, descriptor_mapping)
+    except Exception as e:
+        print("[AGENT]: I'm sorry, I can't help with that task.")
+        return
     # print the output resources
-    print("Output:")
     for output_resource in output_resources:
-        print(output_resource.model.model_dump_json(indent=4, exclude_unset=True))
+        json = output_resource.model.model_dump()
+
+        sentence = json.get("sentence", None)
+
+        print(f"[AGENT]: {sentence}")

@@ -2,7 +2,7 @@ input:
   - topic:
       id: 1
       args:
-        topic: "Get a fact about Mars"
+        topic: "Get a fact about cats"
 
 resources:
   - sentence:
