@@ -68,8 +68,7 @@ class BasicDecisionMaker(DecisionMaker):
             Decision: The decision that the agent made based on the message metrics.
         """
 
-        # TODO how to handle if metrics are bad?
-        # no metrics, we blame the sender (kind of arbitrary)
+        # message is OK
         if self.message_has_good_metrics(metrics):
             return Decision(
                 metrics,
