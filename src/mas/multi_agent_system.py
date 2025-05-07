@@ -58,6 +58,9 @@ class MultiAgentSystem:
 
         self.add_resource_types_from_dict(alias.resource_aliases)
 
+        # communication protocol
+        self.communication_protocol = CommunicationProtocol()
+
     def get_plan_runners(
         self,
         query: MASQuery,
@@ -315,9 +318,10 @@ class MultiAgentSystem:
         # output res
         output_resources: list[BaseResource] = []
 
+        # communication protocol
+        communication_protocol = self.communication_protocol
+
         for plan_runner in plan_runners:
-            # communication protocol
-            communication_protocol = CommunicationProtocol()
 
             # get the plan
             plan = plan_runner.query_plan

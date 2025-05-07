@@ -1,8 +1,10 @@
 """Communication protocol for the MAS."""
 
+from mas.ag2.ag2_task import AG2Task
 from mas.agent import MASAgent
 from mas.base_resource import BaseResource
 from mas.communication.checkpoint import Checkpoint
+from mas.communication.communication_interface import CommunicationInterface
 from mas.communication.message import Message
 from mas.query.query_plan import QueryPlan
 from mas.task import Task
@@ -14,11 +16,15 @@ class CommunicationProtocol:
     checkpoints: list[Checkpoint]
     """List of checkpoints in the communication protocol."""
 
+    agent_to_interface: dict[MASAgent, CommunicationInterface]
+    """Dictionary of agents to their communication interfaces."""
+
     def __init__(self):
         """
         Initialise the communication protocol.
         """
         self.checkpoints = []
+        self.agent_to_interface = {}
 
         self.checkpoint_index = 0
         """Index of the current checkpoint in the communication protocol."""
@@ -41,6 +47,25 @@ class CommunicationProtocol:
         """
         self.checkpoints.append(checkpoint)
 
+    def add_agent_interface(self, agent: MASAgent, interface: CommunicationInterface):
+        """Add an agent and its communication interface to the communication protocol.
+
+        Args:
+            agent (MASAgent): The agent to be added to the communication protocol.
+            interface (CommunicationInterface): The communication interface of the agent.
+        """
+        self.agent_to_interface[agent] = interface
+
+    def get_agent_interface(self, agent: MASAgent) -> CommunicationInterface | None:
+        """Get the communication interface of the agent.
+
+        Args:
+            agent (MASAgent): The agent to get the communication interface for.
+        Returns:
+            CommunicationInterface | None: The communication interface of the agent, or None if it does not exist.
+        """
+        return self.agent_to_interface.get(agent, None)
+
     def wrap(self, task: Task, input_resource: BaseResource) -> Message:
         """Wrap the task and its input resource in a message.
 
@@ -59,10 +84,19 @@ class CommunicationProtocol:
             description="unknown",
         )
 
+        recipient = unknown_agent
+
+        # TODO refactor Task:
+        # Task, AgentTask which inherits from Task, and AG2Task which inherits from AgentTask
+
+        # TODO temp
+        if isinstance(task, AG2Task):
+            recipient = task.agent
+
         message = Message(
             resource=input_resource,
             expected_resource_type=type(input_resource),
-            recipient=unknown_agent,
+            recipient=recipient,
             sender=unknown_agent,
             metadata=[],
         )
@@ -77,8 +111,17 @@ class CommunicationProtocol:
         Returns:
             Message: The new message after it has been handled.
         """
-        # TODO
-        return message
+        # get recipient agent
+        recipient = message.recipient
+
+        # get interface
+        interface = self.get_agent_interface(recipient)
+
+        # has no interface, assume that message can processed automatically
+        if interface is None:
+            return message
+
+        return interface.handle_message(message)
 
     def alter_plan(
         self, plan: QueryPlan, step: int, message: Message

@@ -1,5 +1,6 @@
 """Basic evaluator will evaluate a message on two metrics: accuracy and relevance."""
 
+from config.config_manager import ConfigManager
 from mas.ag2.ag2_agent import AG2MASAgent
 from mas.ag2.ag2_task import AG2Task
 from mas.communication.evaluator import Evaluator
@@ -15,13 +16,19 @@ class BasicEvaluator(Evaluator):
     This class evaluates the message based on two metrics: accuracy and relevance.
     """
 
-    def __init__(self, relevance_checker: AG2MASAgent) -> None:
-        """Initialise the basic evaluator.
-
-        Args:
-            relevance_checker (AG2MASAgent): The relevance checker agent.
-        """
+    def __init__(self) -> None:
+        """Initialise the basic evaluator."""
         super().__init__()
+
+        # TODO refactor config out of here
+        config_manager = ConfigManager("./config/app.json")
+
+        relevance_checker = AG2MASAgent(
+            name="RelevanceChecker",
+            description="A relevance checker agent that checks if the message is relevant to the recipient.",
+            llm_config=config_manager.get_llm_config(use_tools=False),
+        )
+
         self.relevance_checker = relevance_checker
         """The relevance checker agent."""
 
