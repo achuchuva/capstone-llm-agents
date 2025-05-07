@@ -23,8 +23,8 @@ class CommunicationProtocol:
         self.checkpoint_index = 0
         """Index of the current checkpoint in the communication protocol."""
 
-    def failed(self) -> bool:
-        """Check if the communication protocol has failed.
+    def could_not_satisfy_query(self) -> bool:
+        """Check if the communication protocol has failed to satisfy the query.
 
         Returns:
             bool: True if the communication protocol has failed, False otherwise.

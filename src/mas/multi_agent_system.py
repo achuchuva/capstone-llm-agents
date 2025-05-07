@@ -325,8 +325,7 @@ class MultiAgentSystem:
             # while plan is not complete
             while not plan_runner.complete():
 
-                # if communication protocol has error then we failed to complete query
-                if communication_protocol.failed():
+                if communication_protocol.could_not_satisfy_query():
                     # TODO send to user
                     raise ValueError("The query could not be completed.")
 
