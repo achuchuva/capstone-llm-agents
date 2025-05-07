@@ -4,8 +4,10 @@ from mas.base_resource import BaseResource
 from mas.clauses.horn_descriptor import HornClauseForDepedendentDescriptor
 from mas.clauses.horn_resource_assignment import HornClauseForResourceAssignment
 from mas.clauses.horn_task import HornClauseForTask
+from mas.horn_clause import HornClause
 from mas.query.query_plan import QueryPlan
 from mas.resource_manager import ResourceManager
+from mas.task import Task
 
 
 class QueryRunner:
@@ -17,6 +19,7 @@ class QueryRunner:
         resource_manager: ResourceManager,
         input_resources: dict[tuple[type[BaseResource], int], BaseResource],
         output_resource_tuple: tuple[type[BaseResource], int],
+        # communnication protocol (checkpoints)
     ):
         """
         Initialise the QueryRunner with a query plan and resource manager.
@@ -49,81 +52,11 @@ class QueryRunner:
             None
         """
 
-        # iter over claues
+        # iter over clauses
         for clause in self.query_plan.horn_clauses:
-
             print("Running clause", clause)
-
-            # handle type
-            if isinstance(clause, HornClauseForDepedendentDescriptor):
-                # e.g. topic_1 => about_topic(sentence_1)
-
-                # input
-                input_resource_tuple = clause.dependent_task.input_resource_tuple
-
-                # output
-                output_resource_tuple = clause.dependent_task.output_resource_tuple
-
-                # lookup input resource
-                if input_resource_tuple not in self.resource_values:
-                    raise ValueError(
-                        f"Plan did not have input resource {input_resource_tuple} in resource values."
-                    )
-                # get input resource
-                input_resource = self.resource_values[input_resource_tuple]
-
-                # run task
-                output_resource = clause.dependent_task.task.do(input_resource)
-
-                # set output resource
-                self.resource_values[output_resource_tuple] = output_resource
-
-            elif isinstance(clause, HornClauseForResourceAssignment):
-                # e.g. sentence_0 => sentence_2
-
-                # input
-                input_resource_tuple = clause.input_tuple
-
-                # output
-                output_resource_tuple = clause.output_tuple
-
-                # lookup input resource
-                if input_resource_tuple not in self.resource_values:
-                    raise ValueError(
-                        f"Plan did not have input resource {input_resource_tuple} in resource values."
-                    )
-
-                # get input resource
-                input_resource = self.resource_values[input_resource_tuple]
-
-                # add new record
-                self.resource_values[output_resource_tuple] = input_resource
-
-            elif isinstance(clause, HornClauseForTask):
-                # e.g. topic_0 => sentence_0
-
-                # input
-                input_resource_tuple = clause.input_tuple
-
-                # output
-                output_resource_tuple = clause.output_tuple
-
-                # lookup input resource
-                if input_resource_tuple not in self.resource_values:
-                    raise ValueError(
-                        f"Plan did not have input resource {input_resource_tuple} in resource values."
-                    )
-
-                # get input resource
-                input_resource = self.resource_values[input_resource_tuple]
-
-                # run task
-                output_resource = clause.task.do(input_resource)
-
-                # set output resource
-                self.resource_values[output_resource_tuple] = output_resource
-            else:
-                raise ValueError(f"Unknown clause type {type(clause)} in query plan.")
+            # run clause
+            self.run_clause(clause)
 
         # lookup output resource
         if self.output_resource_tuple not in self.resource_values:
@@ -132,3 +65,110 @@ class QueryRunner:
             )
 
         return self.resource_values[self.output_resource_tuple]
+
+    def run_clause(self, clause: HornClause) -> None:
+        """
+        Run a clause in the query plan.
+        Args:
+            clause (HornClause): The clause to be run
+        """
+
+        # get input and output resource tuples
+        input_resource_tuple, output_resource_tuple = (
+            self.get_input_output_tuple_from_clause(clause)
+        )
+
+        # get input resource
+        input_resource = self.resource_values.get(input_resource_tuple)
+
+        if input_resource is None:
+            raise ValueError(
+                f"Plan did not have input resource {input_resource_tuple} in resource values."
+            )
+
+        # get task
+        if isinstance(clause, HornClauseForResourceAssignment):
+            # e.g. sentence_0 => sentence_2
+            self.resource_values[output_resource_tuple] = input_resource
+
+        else:
+            # get task
+            task = self.get_task_from_clause(clause)
+
+            # run task
+            output_resource = self.run_task(task, input_resource, output_resource_tuple)
+
+            # set output resource
+            self.resource_values[output_resource_tuple] = output_resource
+
+    def run_task(
+        self,
+        task: Task,
+        input_resource: BaseResource,
+        output_resource_tuple: tuple[type[BaseResource], int],
+    ) -> BaseResource:
+        """
+        Run a task.
+
+        Args:
+            task (Task): The task to be run
+            input_resource (BaseResource): The input resource for the task
+            output_resource_tuple (tuple[type[BaseResource], int]): The output resource tuple for the task
+
+        Returns:
+            BaseResource: The output resource for the task
+        """
+        # run task
+        output_resource = task.do(input_resource)
+
+        # set output resource
+        self.resource_values[output_resource_tuple] = output_resource
+
+        return output_resource
+
+    def get_input_output_tuple_from_clause(
+        self, clause: HornClause
+    ) -> tuple[tuple[type[BaseResource], int], tuple[type[BaseResource], int]]:
+        """
+        Get the input and output resource tuples from a clause.
+        Args:
+            clause (HornClause): The clause to get the input and output resource tuples from
+        Returns:
+            tuple[tuple[type[BaseResource], int], tuple[type[BaseResource], int]]: The input and output resource tuples
+        """
+
+        # handle type
+        if isinstance(clause, HornClauseForDepedendentDescriptor):
+            # e.g. topic_1 => about_topic(sentence_1)
+            return (
+                clause.dependent_task.input_resource_tuple,
+                clause.dependent_task.output_resource_tuple,
+            )
+
+        elif isinstance(clause, HornClauseForResourceAssignment):
+            # e.g. sentence_0 => sentence_2
+            return clause.input_tuple, clause.output_tuple
+
+        elif isinstance(clause, HornClauseForTask):
+            # e.g. topic_0 => sentence_0
+            return clause.input_tuple, clause.output_tuple
+
+        else:
+            raise ValueError(f"Unknown clause type {type(clause)} in query plan.")
+
+    def get_task_from_clause(self, clause: HornClause) -> Task:
+        """
+        Get the task from a clause.
+        Args:
+            clause (HornClause): The clause to get the task from
+        Returns:
+            Task: The task from the clause
+        """
+        if isinstance(clause, HornClauseForDepedendentDescriptor):
+            return clause.dependent_task.task
+
+        elif isinstance(clause, HornClauseForTask):
+            return clause.task
+
+        else:
+            raise ValueError(f"Unknown clause type {type(clause)} in query plan.")
