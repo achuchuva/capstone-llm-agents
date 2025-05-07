@@ -53,7 +53,7 @@ def test_comm_proto_mas(app: App):
 
     get_a_number_fact = AG2Task(
         name="GetNumberFact",
-        description="Write a sentence about a topic.",
+        description="Get a fact about a number.",
         input_resource=TopicResource,
         output_resource=SentenceResource,
         generate_str=spoofed_error_generate_str(
