@@ -1,5 +1,6 @@
 """Decision handler decides which checkpoint and what message to send to the checkpoint to resume communication."""
 
+from mas.communication.blame_upstream import BlameUpstreamMessage
 from mas.communication.checkpoint import Checkpoint
 from mas.communication.decision import Decision
 from mas.communication.message import Message
@@ -30,8 +31,33 @@ class DecisionHandler:
         Returns:
             Message: The message that the agent sent to the checkpoint.
         """
+
+        # if the decision is blamed on us as the upstream agent, we need to handle it
+        if isinstance(decision.message, BlameUpstreamMessage):
+            return self._handle_incoming_upstream_blame(decision)
+
+        # no problems
+        if not decision.has_problems:
+            return self._handle_decision_with_no_problems(decision)
+
+        # no known problems
+        if len(decision.known_problems) == 0:
+            return self._handle_decision_with_unknown_problems(decision)
+
+        # known problems
+        return self._handle_decision_with_known_problems(decision)
+
+    def _handle_incoming_upstream_blame(self, decision: Decision) -> Message:
+        """Handle the decision that is blamed on us as the upstream agent.
+
+        Args:
+            decision (Decision): The decision to handle.
+
+        Returns:
+            Message: The message that the agent sent to the checkpoint.
+        """
         raise NotImplementedError(
-            "handle_decision method not implemented in DecisionHandler class. Please implement it in the subclass."
+            "_handle_incoming_upstream_blame method not implemented in DecisionHandler class. Please implement it in the subclass."
         )
 
     def _handle_decision_with_no_problems(self, decision: Decision) -> Message:

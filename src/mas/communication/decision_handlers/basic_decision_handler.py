@@ -1,6 +1,5 @@
 """The basic decision handler will use the current if proceeding, and will reject to the first checkpoint if rejecting."""
 
-from mas.communication.decision_enum import DecisionEnum
 from mas.communication.decision_handler import DecisionHandler
 
 from mas.communication.decision import Decision
@@ -15,8 +14,8 @@ class BasicDecisionHandler(DecisionHandler):
     checkpoint if proceeding, and rejects to the first checkpoint if rejecting.
     """
 
-    def handle_decision(self, decision: Decision) -> Message:
-        """Handle the decision.
+    def _handle_incoming_upstream_blame(self, decision: Decision) -> Message:
+        """Handle the decision that is blamed on us as the upstream agent.
 
         Args:
             decision (Decision): The decision to handle.
@@ -24,31 +23,8 @@ class BasicDecisionHandler(DecisionHandler):
         Returns:
             Message: The message that the agent sent to the checkpoint.
         """
-        if decision.decision_enum == DecisionEnum.PROCEED:
-            return decision.message
-
-        # first checkpoint
-        checkpoint = self.checkpoint
-
-        if checkpoint is None:
-            raise ValueError("No checkpoint available to reject to.")
-
-        # reject to the first checkpoint
-        checkpoint_agent = checkpoint.agent
-
-        # TODO assumes that the resource is valid
-        # TODO this is assumes a lot of stuff, like no metadata, and that this is a valid request
-
-        # TODO I think in reality the checkpoint agent would need to be passed in the decision and/or feedback
-        # and generate a new message based on that
-
-        return Message(
-            resource=decision.message.resource,
-            expected_resource_type=decision.message.expected_resource_type,
-            recipient=checkpoint_agent,
-            sender=decision.message.sender,
-            metadata=[],
-        )
+        # TODO for now we will just send upstream again
+        return self.handle_decision_upstream(decision)
 
     def _handle_decision_with_no_problems(self, decision: Decision) -> Message:
         """Handle the decision that appears to have no problems.
@@ -59,7 +35,6 @@ class BasicDecisionHandler(DecisionHandler):
         Returns:
             Message: The message that the agent sent to the checkpoint.
         """
-        # TODO default will be to just proceed with the message
         return decision.message
 
     def _handle_decision_with_known_problems(self, decision: Decision) -> Message:
@@ -77,7 +52,8 @@ class BasicDecisionHandler(DecisionHandler):
         # lets make a big assumption that there will be only one problem
         # if the first problem solution does not work, we will try the next solution
 
-        # if none work we will send upstream
+        # TODO for now we will just send upstream
+        return self.handle_decision_upstream(decision)
 
     def _handle_decision_with_unknown_problems(self, decision: Decision) -> Message:
         """Handle the decision with appears to have a problem or problems that are not known.
@@ -88,7 +64,7 @@ class BasicDecisionHandler(DecisionHandler):
         Returns:
             Message: The message that the agent sent to the checkpoint.
         """
-        # TODO default will be to send upstream
+        return self.handle_decision_upstream(decision)
 
     def handle_decision_upstream(self, decision: Decision) -> Message:
         """Send the message upstream.
