@@ -1,9 +1,12 @@
 """Test file for basic MAS"""
 
+import random
+from typing import Annotated, Callable
 from app import App
 
 from mas.ag2.ag2_agent import AG2MASAgent
 from mas.ag2.ag2_task import AG2Task
+from mas.base_resource import BaseResource
 from mas.multi_agent_system import MultiAgentSystem
 from mas.query.mas_query import MASQuery
 from mas.resource_alias import ResourceAlias
@@ -11,6 +14,19 @@ from mas.resources.empty import EmptyResource
 from mas.task import Task
 from mas.tasks.write_sentence import SentenceResource, TopicResource
 from utils.string_template import generate_str_using_template
+
+
+def spoofed_error_generate_str(
+    template_str: Annotated[str, "The template string to use."],
+) -> Callable[[BaseResource], str]:
+
+    # 50% chance to generate str using wrong template
+    bad_template_str = "Respond with 'Error: Failed to get fact.'"
+
+    if random.random() < 0.5:
+        template_str = bad_template_str
+
+    return generate_str_using_template(template_str)
 
 
 def test_comm_proto_mas(app: App):
@@ -40,7 +56,7 @@ def test_comm_proto_mas(app: App):
         description="Write a sentence about a topic.",
         input_resource=TopicResource,
         output_resource=SentenceResource,
-        generate_str=generate_str_using_template(
+        generate_str=spoofed_error_generate_str(
             "Get a fact about the number '{topic}'",
         ),
         agent=agent,
