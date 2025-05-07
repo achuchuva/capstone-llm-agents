@@ -1,0 +1,20 @@
+input:
+  - topic:
+      id: 1
+      args:
+        topic: "1"
+
+resources:
+  - sentence:
+      id: 1
+
+      descriptors:
+        about_topic:
+          params:
+            topic:
+              topic:
+                id: 1
+
+output:
+  - sentence:
+      id: 1
