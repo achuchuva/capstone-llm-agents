@@ -369,8 +369,13 @@ class MultiAgentSystem:
                     # update the plan runner
                     plan_runner.update_plan(plan, step)
 
-                # run the plan step
-                plan_runner.run_next_step()
+                # NOTE: we keep the else here so that on the next run we can recheck the plan
+                # because sometimes it might want to reraise an issue
+                # eg. plan1 -> broken -> fix -> plan2 -> broken -> fix -> plan 3 -> done
+                else:
+
+                    # run the plan step
+                    plan_runner.run_next_step()
 
             # run the query
             output_resource_from_plan = plan_runner.get_final_resource()
