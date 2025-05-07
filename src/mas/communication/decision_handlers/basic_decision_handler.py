@@ -1,5 +1,6 @@
 """The basic decision handler will use the current if proceeding, and will reject to the first checkpoint if rejecting."""
 
+from mas.communication.blame_upstream import BlameUpstreamMessage
 from mas.communication.decision_handler import DecisionHandler
 
 from mas.communication.decision import Decision
@@ -74,26 +75,7 @@ class BasicDecisionHandler(DecisionHandler):
             Message: The message that the agent sent to the checkpoint.
         """
 
-        # find the first checkpoint
-        checkpoint = self.checkpoint
-
-        if checkpoint is None:
-            raise ValueError("No checkpoint available to send upstream to.")
-
-        # some default message that just says that we had some unknown problem we couldn't solve
-
-        # TODO make a special message for this
-        # TODO therefore we need a special checkpoint agent that can handle this
-        # or the checkpoint itself can handle this, so we dont have to do weird multi-inheritance with agents
-
-        message = decision.message
-
-        message = Message(
-            resource=message.resource,
-            expected_resource_type=message.expected_resource_type,
-            recipient=checkpoint.agent,
-            sender=message.sender,
-            metadata=[],
+        return BlameUpstreamMessage(
+            sender=decision.message.sender,
+            upstream_agent=self.checkpoint.agent,
         )
-
-        return message
