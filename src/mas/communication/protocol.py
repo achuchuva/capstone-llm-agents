@@ -1,11 +1,11 @@
 """Communication protocol for the MAS."""
 
 from mas.agent import MASAgent
+from mas.base_resource import BaseResource
 from mas.communication.checkpoint import Checkpoint
 from mas.communication.message import Message
-from mas.horn_clause import HornClause
 from mas.query.query_plan import QueryPlan
-from mas.resources.empty import EmptyResource
+from mas.task import Task
 
 
 class CommunicationProtocol:
@@ -41,16 +41,18 @@ class CommunicationProtocol:
         """
         self.checkpoints.append(checkpoint)
 
-    def wrap(self, clause: HornClause) -> Message:
-        """Wrap the clause in a message.
+    def wrap(self, task: Task, input_resource: BaseResource) -> Message:
+        """Wrap the task and its input resource in a message.
 
         Args:
-            clause (HornClause): The clause to be wrapped up.
+            task (Task): The task to be wrapped in a message.
+            input_resource (BaseResource): The input resource for the task.
         Returns:
             Message: The message that the clause is wrapped in.
         """
-        # TODO
+        # TODO abstract task and input into a new class
 
+        # TODO get agent sender and recipient
         # unknown agent
         unknown_agent = MASAgent(
             name="unknown",
@@ -58,8 +60,8 @@ class CommunicationProtocol:
         )
 
         message = Message(
-            resource=EmptyResource(EmptyResource.EmptyModel()),
-            expected_resource_type=EmptyResource,
+            resource=input_resource,
+            expected_resource_type=type(input_resource),
             recipient=unknown_agent,
             sender=unknown_agent,
             metadata=[],

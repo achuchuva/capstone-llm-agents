@@ -332,8 +332,25 @@ class MultiAgentSystem:
                 # get the next step in the plan
                 next_step = plan_runner.get_next_step()
 
+                # if clause is a resource assignment auto proceed
+                if isinstance(next_step, HornClauseForResourceAssignment):
+                    # run the plan step
+                    plan_runner.run_next_step()
+                    continue
+
+                # task
+                task = plan_runner.get_task_from_clause(next_step)
+
+                # get input from task
+                input_resource_tuple, _ = (
+                    plan_runner.get_input_output_tuple_from_clause(next_step)
+                )
+
+                # get input resource
+                input_resource = plan_runner.get_resource(input_resource_tuple)
+
                 # message
-                ideal_message = communication_protocol.wrap(next_step)
+                ideal_message = communication_protocol.wrap(task, input_resource)
 
                 # actual message
                 actual_message = communication_protocol.handle_message(ideal_message)

@@ -220,6 +220,21 @@ class PlanRunner:
         else:
             raise ValueError(f"Unknown clause type {type(clause)} in query plan.")
 
+    def get_resource(
+        self, resource_tuple: tuple[type[BaseResource], int]
+    ) -> BaseResource:
+        """
+        Get a resource from the resource values.
+        Args:
+            resource_tuple (tuple[type[BaseResource], int]): The resource tuple to get
+        Returns:
+            BaseResource: The resource from the resource values
+        """
+        if resource_tuple not in self.resource_values:
+            raise ValueError(f"Resource {resource_tuple} not found in resource values.")
+
+        return self.resource_values[resource_tuple]
+
     def update_plan(self, new_plan: QueryPlan, step: int) -> None:
         """
         Update the query plan and step.
