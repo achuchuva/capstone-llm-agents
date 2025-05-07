@@ -10,7 +10,7 @@ from mas.resource_manager import ResourceManager
 from mas.task import Task
 
 
-class QueryRunner:
+class PlanRunner:
     """Runs the plan for a given query."""
 
     def __init__(
@@ -44,6 +44,44 @@ class QueryRunner:
 
         self.output_resource_tuple = output_resource_tuple
 
+        self.step = 0
+        """Step in the query plan."""
+
+    def get_next_step(self) -> HornClause:
+        """
+        Get the next step in the query plan.
+
+        Returns:
+            HornClause: The next step in the query plan
+        """
+        if self.step >= len(self.query_plan.horn_clauses):
+            raise ValueError("Query plan is complete.")
+
+        return self.query_plan.horn_clauses[self.step]
+
+    def run_next_step(self) -> None:
+        """
+        Run the next step in the query plan.
+        """
+
+        # get next clause
+        clause = self.query_plan.horn_clauses[self.step]
+
+        # run clause
+        self.run_clause(clause)
+
+        # increment step
+        self.step += 1
+
+    def complete(self) -> bool:
+        """
+        Check if the query plan is complete.
+
+        Returns:
+            bool: True if the query plan is complete, False otherwise
+        """
+        return self.step >= len(self.query_plan.horn_clauses)
+
     def run(self) -> BaseResource:
         """
         Run the query plan.
@@ -59,6 +97,15 @@ class QueryRunner:
             self.run_clause(clause)
 
         # lookup output resource
+        return self.get_final_resource()
+
+    def get_final_resource(self) -> BaseResource:
+        """
+        Get the final resource after running the query plan.
+
+        Returns:
+            BaseResource: The final resource after running the query plan
+        """
         if self.output_resource_tuple not in self.resource_values:
             raise ValueError(
                 f"Plan did not have output resource {self.output_resource_tuple} in resource values."
@@ -172,3 +219,13 @@ class QueryRunner:
 
         else:
             raise ValueError(f"Unknown clause type {type(clause)} in query plan.")
+
+    def update_plan(self, new_plan: QueryPlan, step: int) -> None:
+        """
+        Update the query plan and step.
+        Args:
+            new_plan (QueryPlan): The new query plan
+            step (int): The step in the new query plan
+        """
+        self.query_plan = new_plan
+        self.step = step

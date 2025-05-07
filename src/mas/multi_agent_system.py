@@ -8,6 +8,7 @@ from mas.clauses.horn_input import HornClauseForInput
 from mas.clauses.horn_resource import HornClauseForResourceTransform
 from mas.clauses.horn_resource_assignment import HornClauseForResourceAssignment
 from mas.clauses.horn_task import HornClauseForTask
+from mas.communication.protocol import CommunicationProtocol
 from mas.horn_clause import HornClause
 from mas.horn_kb import HornKB
 from mas.query.dependent_task import DependentTask
@@ -16,7 +17,7 @@ from mas.query.query_dependencies import MASQueryDependencies, Param
 from mas.query.query_input import MASQueryInput
 from mas.query.query_output import MASQueryOutput
 from mas.query.query_plan import QueryPlan
-from mas.query.query_runner import QueryRunner
+from mas.query.query_runner import PlanRunner
 from mas.resource_alias import ResourceAlias
 from mas.resource_manager import ResourceManager
 from mas.task import Task
@@ -57,17 +58,19 @@ class MultiAgentSystem:
 
         self.add_resource_types_from_dict(alias.resource_aliases)
 
-    def solve_query(
-        self, query: MASQuery, descriptor_mapping: dict[str, Task]
-    ) -> list[BaseResource]:
+    def get_plan_runners(
+        self,
+        query: MASQuery,
+        descriptor_mapping: dict[str, Task],
+    ) -> list[PlanRunner]:
         """
-        Solve a query using the MAS.
+        Get the query runners for a given query.
 
         Args:
             query (MASQuery): The query to be solved.
-
+            descriptor_mapping (dict[str, Task]): The mapping of descriptor names to tasks.
         Returns:
-            BaseResource: The resource obtained from solving the query.
+            list[QueryRunner]: The query runners for the given query.
         """
 
         # input
@@ -258,7 +261,7 @@ class MultiAgentSystem:
             forward_chain_plans.append(forward_chain_plan)
 
         # output res
-        output_resources: list[BaseResource] = []
+        query_runners: list[PlanRunner] = []
 
         for forward_chain_plan, output_resource_tuple in zip(
             forward_chain_plans, query_output.output_resources
@@ -281,15 +284,76 @@ class MultiAgentSystem:
             query_plan = QueryPlan(filtered_clauses)
 
             # query planner runner
-            query_runner = QueryRunner(
+            query_runner = PlanRunner(
                 query_plan,
                 self.resource_manager,
                 query_input.resource_id_mapping,
                 output_resource_tuple,
             )
 
+            # add the query runner to the list
+            query_runners.append(query_runner)
+
+        return query_runners
+
+    def solve_query(
+        self, query: MASQuery, descriptor_mapping: dict[str, Task]
+    ) -> list[BaseResource]:
+        """
+        Solve a query using the MAS.
+
+        Args:
+            query (MASQuery): The query to be solved.
+
+        Returns:
+            BaseResource: The resource obtained from solving the query.
+        """
+
+        # get the plan runners for the query
+        plan_runners = self.get_plan_runners(query, descriptor_mapping)
+
+        # output res
+        output_resources: list[BaseResource] = []
+
+        for plan_runner in plan_runners:
+            # communication protocol
+            communication_protocol = CommunicationProtocol()
+
+            # get the plan
+            plan = plan_runner.query_plan
+
+            # while plan is not complete
+            while not plan_runner.complete():
+
+                # if communication protocol has error then we failed to complete query
+                if communication_protocol.failed():
+                    # TODO send to user
+                    raise ValueError("The query could not be completed.")
+
+                # get the next step in the plan
+                next_step = plan_runner.get_next_step()
+
+                # message
+                ideal_message = communication_protocol.wrap(next_step)
+
+                # actual message
+                actual_message = communication_protocol.handle_message(ideal_message)
+
+                # communication protocol thinks that the current plan step will not work
+                if ideal_message != actual_message:
+                    # alter the plan to accommodate the actual message
+                    plan, step = communication_protocol.alter_plan(
+                        plan, plan_runner.step, actual_message
+                    )
+
+                    # update the plan runner
+                    plan_runner.update_plan(plan, step)
+
+                # run the plan step
+                plan_runner.run_next_step()
+
             # run the query
-            output_resource_from_plan = query_runner.run()
+            output_resource_from_plan = plan_runner.get_final_resource()
 
             output_resources.append(output_resource_from_plan)
 
