@@ -39,77 +39,81 @@ def spoofed_error_generate_str(
 def test_comm_proto_mas(app: App):
     """Test basic MAS."""
 
-    alias = ResourceAlias()
+    # TEMPORARY
 
-    # add aliases
-    alias.add_resource_alias("empty", EmptyResource)
-    alias.add_resource_alias("sentence", SentenceResource)
-    alias.add_resource_alias("topic", TopicResource)
+    while True:
 
-    mas = MultiAgentSystem(alias)
+        alias = ResourceAlias()
 
-    yaml_file = "./resource/example/number.yaml"
+        # add aliases
+        alias.add_resource_alias("empty", EmptyResource)
+        alias.add_resource_alias("sentence", SentenceResource)
+        alias.add_resource_alias("topic", TopicResource)
 
-    mas_query = MASQuery.from_yaml(yaml_file)
+        mas = MultiAgentSystem(alias)
 
-    # wait for user input
+        yaml_file = "./resource/example/number.yaml"
 
-    user_input = input("[USER]: ")
+        mas_query = MASQuery.from_yaml(yaml_file)
 
-    mas_query.input[0]["topic"].args["topic"] = user_input
+        # wait for user input
 
-    agent = AG2MASAgent(
-        name="NumberAssistantAgent",
-        description="You are an assistant that knows all about numbers.",
-        llm_config=app.config_manager.get_llm_config(use_tools=False),
-    )
+        user_input = input("[USER]: ")
 
-    get_a_number_fact = AG2Task(
-        name="GetNumberFact",
-        description="Get a fact about a number.",
-        input_resource=TopicResource,
-        output_resource=SentenceResource,
-        generate_str=spoofed_error_generate_str(
-            "'{topic}'",
-        ),
-        agent=agent,
-    )
+        mas_query.input[0]["topic"].args["topic"] = user_input
 
-    descriptor_mapping: dict[str, Task] = {
-        "about_topic": get_a_number_fact,
-    }
+        agent = AG2MASAgent(
+            name="NumberAssistantAgent",
+            description="You are an assistant that knows all about numbers.",
+            llm_config=app.config_manager.get_llm_config(use_tools=False),
+        )
 
-    # example tasks
-    example_tasks: list[Task] = [
-        # write a sentence about a topic
-        get_a_number_fact,
-    ]
+        get_a_number_fact = AG2Task(
+            name="GetNumberFact",
+            description="Get a fact about a number.",
+            input_resource=TopicResource,
+            output_resource=SentenceResource,
+            generate_str=spoofed_error_generate_str(
+                "'{topic}'",
+            ),
+            agent=agent,
+        )
 
-    # add tasks to mas
-    for task in example_tasks:
-        mas.add_task(task)
+        descriptor_mapping: dict[str, Task] = {
+            "about_topic": get_a_number_fact,
+        }
 
-    checkpoint = Checkpoint(agent)
+        # example tasks
+        example_tasks: list[Task] = [
+            # write a sentence about a topic
+            get_a_number_fact,
+        ]
 
-    agent_interface = CommunicationInterface(
-        handler=BasicDecisionHandler(checkpoint),
-        evaluator=BasicEvaluator(),
-        decision_maker=BasicDecisionMaker([]),
-    )
+        # add tasks to mas
+        for task in example_tasks:
+            mas.add_task(task)
 
-    mas.add_agent(agent)
+        checkpoint = Checkpoint(agent)
 
-    mas.communication_protocol.add_agent_interface(agent, agent_interface)
+        agent_interface = CommunicationInterface(
+            handler=BasicDecisionHandler(checkpoint),
+            evaluator=BasicEvaluator(),
+            decision_maker=BasicDecisionMaker([]),
+        )
 
-    try:
-        output_resources = mas.solve_query(mas_query, descriptor_mapping)
-    except Exception as e:
-        print("[AGENT]: I'm sorry, I can't help with that. Ask me about numbers.")
-        return
-    # print the output resources
-    for output_resource in output_resources:
-        json = output_resource.model.model_dump()
+        mas.add_agent(agent)
 
-        sentence = json.get("sentence", None)
+        mas.communication_protocol.add_agent_interface(agent, agent_interface)
 
-        print(f"[AGENT]: {sentence}")
+        try:
+            output_resources = mas.solve_query(mas_query, descriptor_mapping)
+        except Exception as e:
+            print("[AGENT]: I'm sorry, I can't help with that. Ask me about numbers.")
+            continue
+        # print the output resources
+        for output_resource in output_resources:
+            json = output_resource.model.model_dump()
+
+            sentence = json.get("sentence", None)
+
+            print(f"[AGENT]: {sentence}")
