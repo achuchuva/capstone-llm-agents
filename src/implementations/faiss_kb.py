@@ -28,17 +28,22 @@ class FAISSKnowledgeBase(KnowledgeBase):
         """
         Heuristic that scales max_tokens and top_k based on document length.
         - For very small docs (~500 tokens): ~64, 3
-        - For very large docs (~20000 tokens): ~512, 9
+        - For very large docs (~20000 tokens): ~1024, 9
         """
-        from math import log
 
-        # Scale max_tokens between 64 and 512
-        max_tokens = int(64 + (min(total_tokens, 20000) / 20000) * (512 - 64))
+        # Scale max_tokens between 64 and 1024
+        max_tokens = int(64 + (min(total_tokens, 20000) / 20000) * (1024 - 64))
 
-        # Scale top_k between 3 and 9 logarithmically
-        top_k = int(
-            3 + (log(min(total_tokens, 20000) + 1, 10) / log(20000 + 1, 10)) * (9 - 3)
-        )
+        if total_tokens < 500:
+            top_k = 3
+        elif total_tokens < 2000:
+            top_k = 4
+        elif total_tokens < 5000:
+            top_k = 5
+        elif total_tokens < 10000:
+            top_k = 4
+        else:
+            top_k = 3
 
         return max_tokens, top_k
 
