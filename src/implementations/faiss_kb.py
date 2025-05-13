@@ -5,34 +5,48 @@ import fitz, faiss, numpy as np
 
 
 class FAISSKnowledgeBase(KnowledgeBase):
-    """A simple knowledge base to store and retrieve information that the agent can use."""
+    """A knowledge base with per-document max_tokens and top_k support."""
 
     def __init__(
-        self, supported_extensions: list[str], max_tokens: int = 100, top_k: int = 5
+        self,
+        supported_extensions: list[str],
+        default_max_tokens: int = 100,
+        default_top_k: int = 5,
     ):
         super().__init__("knowledge_base")
         self.supported_extensions = supported_extensions
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
         self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
-        self.text_chunks = []  # list of all text chunks
-        self.embeddings = None  # will hold numpy array of embeddings
-        self.index = None  # FAISS index
-        self.max_tokens = max_tokens  # max tokens per chunk
-        self.top_k = top_k  # number of top k results to retrieve
-
-        # Instead of single index, we use a list of document-specific storages
-        self.documents = []  # list of dicts: each with 'chunks', 'embeddings', 'index'
+        self.documents = []  # Each document stores its own settings and index
+        self.default_max_tokens = default_max_tokens
+        self.default_top_k = default_top_k
 
     def is_supported_extension(self, extension: str) -> bool:
-        """Check if the extension is supported."""
         return extension in self.supported_extensions
 
+    def _estimate_document_heuristics(self, total_tokens: int) -> tuple[int, int]:
+        """
+        Heuristic that scales max_tokens and top_k based on document length.
+        - For very small docs (~500 tokens): ~64, 3
+        - For very large docs (~20000 tokens): ~512, 9
+        """
+        from math import log
+
+        # Scale max_tokens between 64 and 512
+        max_tokens = int(64 + (min(total_tokens, 20000) / 20000) * (512 - 64))
+
+        # Scale top_k between 3 and 9 logarithmically
+        top_k = int(
+            3 + (log(min(total_tokens, 20000) + 1, 10) / log(20000 + 1, 10)) * (9 - 3)
+        )
+
+        return max_tokens, top_k
+
     def ingest_document(self, document: Document):
-        """Ingest a document into the knowledge base."""
         if not self.is_supported_extension(document.extension):
             raise ValueError(f"Unsupported file extension: {document.extension}")
 
-        # Read text from document
+        # Extract text
         texts = []
         if document.extension == "pdf":
             doc = fitz.open(document.path)
@@ -42,27 +56,43 @@ class FAISSKnowledgeBase(KnowledgeBase):
             with open(document.path, "r", encoding="utf-8") as f:
                 texts = [f.read()]
 
+        full_text = "\n".join(texts)
+        token_ids = self.tokenizer.encode(full_text)
+        total_tokens = len(token_ids)
+
+        # Apply heuristic to determine max_tokens and top_k
+        max_tokens, top_k = self._estimate_document_heuristics(total_tokens)
+
+        # Chunking
         all_chunks = []
-        for text in texts:
-            token_ids = self.tokenizer.encode(text)
-            for i in range(0, len(token_ids), self.max_tokens):
-                chunk_ids = token_ids[i : i + self.max_tokens]
-                chunk_text = self.tokenizer.decode(chunk_ids)
-                all_chunks.append(chunk_text)
+        for i in range(0, total_tokens, max_tokens):
+            chunk_ids = token_ids[i : i + max_tokens]
+            chunk_text = self.tokenizer.decode(chunk_ids)
+            all_chunks.append(chunk_text)
 
         if not all_chunks:
             return
 
-        # Encode and index chunks
         embeddings = self.model.encode(all_chunks)
         dim = embeddings.shape[1]
         index = faiss.IndexFlatL2(dim)
         index.add(np.array(embeddings))
 
         self.documents.append(
-            {"chunks": all_chunks, "embeddings": embeddings, "index": index}
+            {
+                "chunks": all_chunks,
+                "embeddings": embeddings,
+                "index": index,
+                "max_tokens": max_tokens,
+                "top_k": top_k,
+                "length": total_tokens,
+            }
         )
-        print(f"Ingested document with {len(all_chunks)} chunks.")
+
+        print(
+            f"Ingested document ({total_tokens} tokens) with {len(all_chunks)} chunks, "
+            f"max_tokens={max_tokens}, top_k={top_k}."
+        )
 
     def retrieve_related_knowledge(self, query: str) -> list[Knowledge]:
         """
@@ -75,14 +105,12 @@ class FAISSKnowledgeBase(KnowledgeBase):
         query_emb = self.model.encode([query])
         combined_results = []
 
-        # Search each document index separately
         for doc in self.documents:
-            D, I = doc["index"].search(np.array(query_emb), self.top_k)
+            D, I = doc["index"].search(np.array(query_emb), doc["top_k"])
             for dist, idx in zip(D[0], I[0]):
                 if idx < len(doc["chunks"]):
                     combined_results.append((dist, doc["chunks"][idx]))
 
-        # Sort all results by distance and return top_k overall
         combined_results.sort(key=lambda x: x[0])
-        top_chunks = [Knowledge(text) for _, text in combined_results[: self.top_k]]
-        return top_chunks
+        top_results = combined_results[: self.default_top_k]
+        return [Knowledge(text) for _, text in top_results]
