@@ -42,11 +42,3 @@ class ChatHistory:
 
         count = min(n, len(self.messages))
         return self.messages[-count:]
-
-
-class Query(ChatMessage):
-    """A query in a conversation."""
-
-
-class QueryResponse(ChatMessage):
-    """A response to a query in a conversation."""
