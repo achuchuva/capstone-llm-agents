@@ -112,5 +112,7 @@ class FAISSKnowledgeBase(KnowledgeBase):
 
     def copy(self) -> "FAISSKnowledgeBase":
         """Create a copy of the knowledge base."""
-        new_kb = FAISSKnowledgeBase(self.chunker, self.extractor)
+        new_kb = FAISSKnowledgeBase(
+            self.chunker, self.extractor, self.top_k, self.max_tokens
+        )
         return new_kb
