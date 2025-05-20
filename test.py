@@ -215,7 +215,71 @@ window = MainWindow()
 window.show()
 app.exec()
 '''
+#layout testing
+'''
+import sys
+
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QMainWindow,
+    QPushButton,
+    QStackedLayout,
+    QVBoxLayout,
+    QWidget,
+)
+
+from layout_colourwidget import Color
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("My App")
+
+        pagelayout = QVBoxLayout()
+        button_layout = QHBoxLayout()
+        self.stacklayout = QStackedLayout()
+
+        pagelayout.addLayout(button_layout)
+        pagelayout.addLayout(self.stacklayout)
+
+        btn = QPushButton("red")
+        btn.pressed.connect(self.activate_tab_1)
+        button_layout.addWidget(btn)
+        self.stacklayout.addWidget(Color("red"))
+
+        btn = QPushButton("green")
+        btn.pressed.connect(self.activate_tab_2)
+        button_layout.addWidget(btn)
+        self.stacklayout.addWidget(Color("green"))
+
+        btn = QPushButton("yellow")
+        btn.pressed.connect(self.activate_tab_3)
+        button_layout.addWidget(btn)
+        self.stacklayout.addWidget(Color("yellow"))
+
+        widget = QWidget()
+        widget.setLayout(pagelayout)
+        self.setCentralWidget(widget)
+
+    def activate_tab_1(self):
+        self.stacklayout.setCurrentIndex(0)
+
+    def activate_tab_2(self):
+        self.stacklayout.setCurrentIndex(1)
+
+    def activate_tab_3(self):
+        self.stacklayout.setCurrentIndex(2)
+
+
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+'''
 #Final test
+#'''
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import (
@@ -225,12 +289,22 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QStatusBar,
     QToolBar,
+    QVBoxLayout,
+    QHBoxLayout,
+    QStackedLayout,
 )
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("My App")
+        #currently pagelayout is uselsess
+        pagelayout = QVBoxLayout()
+        button_layout = QHBoxLayout()
+        self.stacklayout = QStackedLayout()
+
+        pagelayout.addLayout(button_layout)
+        pagelayout.addLayout(self.stacklayout)
 
         self.label = QLabel("Hello!")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -274,3 +348,4 @@ app = QApplication([])
 window = MainWindow()
 window.show()
 app.exec()
+#'''
