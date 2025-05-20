@@ -292,6 +292,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QStackedLayout,
+    QLineEdit,
 )
 
 class MainWindow(QMainWindow):
@@ -315,7 +316,7 @@ class MainWindow(QMainWindow):
         toolbar.setIconSize(QSize(16, 16))
         self.addToolBar(toolbar)
 
-        button_action = QAction(QIcon("bug.png"), "&Your button", self)
+        button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
         button_action.setStatusTip("This is your button")
         button_action.triggered.connect(self.toolbar_button_clicked)
         button_action.setCheckable(True)
@@ -329,10 +330,40 @@ class MainWindow(QMainWindow):
         button_action2.setCheckable(True)
         toolbar.addAction(button_action2)
 
-        toolbar.addWidget(QLabel("Hello"))
-        toolbar.addWidget(QCheckBox())
+        button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
+        button_action.setStatusTip("This is your button")
+        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setCheckable(True)
+        toolbar.addAction(button_action)
+
+        toolbar.addSeparator()
+
+        button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
+        button_action.setStatusTip("This is your button")
+        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setCheckable(True)
+        toolbar.addAction(button_action)
+
+        toolbar.addSeparator()
+
+        button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
+        button_action.setStatusTip("This is your button")
+        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setCheckable(True)
+        toolbar.addAction(button_action)
+
+        toolbar.addSeparator()
+
+        button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
+        button_action.setStatusTip("This is your button")
+        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setCheckable(True)
+        toolbar.addAction(button_action)
 
         self.setStatusBar(QStatusBar(self))
+
+        self.input = QLineEdit()
+        self.input.textChanged.connect(self.label.setText)
 
     def toolbar_button_clicked(self, s):
         print("click", s)
