@@ -293,12 +293,13 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QStackedLayout,
     QLineEdit,
+    QWidget,
 )
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("My App")
+        self.setWindowTitle("The test")
         #currently pagelayout is uselsess
         pagelayout = QVBoxLayout()
         button_layout = QHBoxLayout()
@@ -319,7 +320,7 @@ class MainWindow(QMainWindow):
         button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
         button_action.setStatusTip("This is your button")
         button_action.triggered.connect(self.toolbar_button_clicked)
-        button_action.setCheckable(True)
+        #button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         toolbar.addSeparator()
@@ -327,43 +328,59 @@ class MainWindow(QMainWindow):
         button_action2 = QAction(QIcon("bug.png"), "Your &button2", self)
         button_action2.setStatusTip("This is your button2")
         button_action2.triggered.connect(self.toolbar_button_clicked2)
-        button_action2.setCheckable(True)
+        #button_action2.setCheckable(True)
         toolbar.addAction(button_action2)
 
         button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
-        button_action.setStatusTip("This is your button")
-        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setStatusTip("This is your button3")
+        button_action.triggered.connect(self.toolbar_button_clicked3)
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         toolbar.addSeparator()
 
         button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
-        button_action.setStatusTip("This is your button")
-        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setStatusTip("This is your button4")
+        button_action.triggered.connect(self.toolbar_button_clicked4)
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         toolbar.addSeparator()
 
         button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
-        button_action.setStatusTip("This is your button")
-        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setStatusTip("This is your button5")
+        button_action.triggered.connect(self.toolbar_button_clicked5)
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         toolbar.addSeparator()
 
         button_action = QAction(QIcon("bug.png"), "&Your button", self)#can change button to an immage
-        button_action.setStatusTip("This is your button")
-        button_action.triggered.connect(self.toolbar_button_clicked)
+        button_action.setStatusTip("This is your button6")
+        button_action.triggered.connect(self.toolbar_button_clicked6)
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         self.setStatusBar(QStatusBar(self))
 
-        self.input = QLineEdit()
-        self.input.textChanged.connect(self.label.setText)
+        self.text_input = QLineEdit()
+        self.text_input.textChanged.connect(self.text_input_proccess)
+        self.text_input.returnPressed.connect(self.enter_click)
+        text_input_layout = QVBoxLayout()
+        text_input_layout.addWidget(self.text_input)
+        text_input_layout.addWidget(self.label)
+
+        container = QWidget()
+        container.setLayout(text_input_layout)
+
+        # Set the central widget of the Window.
+        self.setCentralWidget(container)
+
+    def text_input_proccess(self):
+        print("The text input is -->", self.text_input.text())
+
+    def enter_click(self):
+        self.label.setText(self.text_input.text())
 
     def toolbar_button_clicked(self, s):
         print("click", s)
@@ -372,6 +389,22 @@ class MainWindow(QMainWindow):
     def toolbar_button_clicked2(self, s):
         print("click", s)
         self.label.setText("Definetly")
+
+    def toolbar_button_clicked3(self, s):
+        print("click", s)
+        self.label.setText("3")
+
+    def toolbar_button_clicked4(self, s):
+        print("click", s)
+        self.label.setText("4")
+
+    def toolbar_button_clicked5(self, s):
+        print("click", s)
+        self.label.setText("5")
+
+    def toolbar_button_clicked6(self, s):
+        print("click", s)
+        self.label.setText("Aiden!")
 
 
 
