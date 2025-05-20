@@ -37,11 +37,10 @@ class App:
     ) -> AgentCapabilities:
         """Generate capabilities for the AG2 agent."""
         # agent capabiltiies using proxy
-        supported_extensions: list[str] = []
 
         ag2_model = AG2Model(agent)
 
-        spoofed_capabilities = SpoofedCapabilities(supported_extensions, ag2_model)
+        spoofed_capabilities = SpoofedCapabilities(ag2_model)
 
         proxy = CapabilityProxy(spoofed_capabilities)
 

@@ -15,12 +15,10 @@ from spoof.capabilities.tools import ToolsManagerSpoof
 class SpoofedCapabilities(AgentCapabilities):
     """This class is used to spoof the capabilities of an agent."""
 
-    def __init__(
-        self, supported_extensions: list[str], underlying_model: UnderlyingModel
-    ):
+    def __init__(self, underlying_model: UnderlyingModel):
 
         query_executor = QueryExectuorSpoof(underlying_model)
-        knowledge_base = KnowledgeBaseSpoof(supported_extensions)
+        knowledge_base = KnowledgeBaseSpoof()
         memory = MemoryManagerSpoof()
         planning = PlanningSpoof(underlying_model)
         tool_manager = ToolsManagerSpoof()

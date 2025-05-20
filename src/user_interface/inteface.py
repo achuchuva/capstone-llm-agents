@@ -1,10 +1,11 @@
 import tkinter as tk
-import time     # for delay
+import time  # for delay
 import threading
-import pyglet   # for custom font stuff
+import pyglet  # for custom font stuff
 from tkinter import filedialog, messagebox
-from capabilities.knowledge_base import Document
+from capabilities.knowledge_base import Document, LocalDocument
 from core.api import MASAPI
+
 
 class UserInterface:
     """A simple CLI interface for interacting with MASAPI."""
@@ -15,7 +16,9 @@ class UserInterface:
         self.root = tk.Tk()
         self.root.title("MAS GUI")
         self.root.geometry("800x500")
-        self.custom_font = self.load_custom_font("user_interface/fonts/NebulaSans-Medium.ttf", size=16) # just edit if you want a diff font, not certain this is working though
+        self.custom_font = self.load_custom_font(
+            "user_interface/fonts/NebulaSans-Medium.ttf", size=16
+        )  # just edit if you want a diff font, not certain this is working though
         self.setup_layout()
         self.create_buttons()
         # flag for the window type, whether it's actively in the messaging/chat mode
@@ -24,7 +27,7 @@ class UserInterface:
     def load_custom_font(self, font_path, size):
         try:
             pyglet.font.add_file(font_path)
-            font_name = font_path.split('/')[-1].replace('.ttf', '') 
+            font_name = font_path.split("/")[-1].replace(".ttf", "")
             return (font_name, size)
         except Exception as e:
             print(f"Error loading font: {e}")
@@ -42,15 +45,24 @@ class UserInterface:
 
         # output window frame
         self.output_frame = tk.Frame(self.main_frame)
-        self.output_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.output_frame.pack(
+            side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10
+        )
 
         # text box output frame
-        self.text_output = tk.Text(self.output_frame, height=20, wrap=tk.WORD, font=(self.custom_font[0], self.custom_font[1]))
+        self.text_output = tk.Text(
+            self.output_frame,
+            height=20,
+            wrap=tk.WORD,
+            font=(self.custom_font[0], self.custom_font[1]),
+        )
         self.text_output.pack(fill=tk.BOTH, expand=True)
         self.text_output.config(state=tk.DISABLED)
 
         # input frame (below the main output box)
-        self.text_input = tk.Entry(self.output_frame, font=(self.custom_font[0], self.custom_font[1]))
+        self.text_input = tk.Entry(
+            self.output_frame, font=(self.custom_font[0], self.custom_font[1])
+        )
         self.text_input.pack(fill=tk.X, padx=10, pady=5)
         self.text_input.bind("<Return>", self.submit_query)
 
@@ -63,7 +75,13 @@ class UserInterface:
             ("Exit", self.root.quit),
         ]
         for label, command in buttons:
-            button = tk.Button(self.button_frame, text=label, width=20, command=command, font=(self.custom_font[0], self.custom_font[1]))
+            button = tk.Button(
+                self.button_frame,
+                text=label,
+                width=20,
+                command=command,
+                font=(self.custom_font[0], self.custom_font[1]),
+            )
             button.pack(pady=5)
 
     def run(self):
@@ -85,31 +103,40 @@ class UserInterface:
     # list agents button
     def list_agents(self):
         agents = self.api.get_agents()
-        result = "Agents:\n" + "\n".join(f"- {agent.name}" for agent in agents) if agents else "No agents found."
+        result = (
+            "Agents:\n" + "\n".join(f"- {agent.name}" for agent in agents)
+            if agents
+            else "No agents found."
+        )
         self.print_output(result)
 
     # for the chat message window, should probably make it visually change beyond the text (?)
     # this is for selecting the button versus sending a message BUT i'd wanna move things about to have similar code/less repeats
     def enter_messaging_mode(self):
         self.clear_output()
+
         def fetch_history():
             try:
                 history = self.api.get_chat_history()
                 if history and history.messages:
-                    result = "Chat History:\n" + "\n".join(f"- {msg.who}: {msg.content}" for msg in history.messages)
+                    result = "Chat History:\n" + "\n".join(
+                        f"- {msg.who}: {msg.content}" for msg in history.messages
+                    )
                 else:
                     result = "No chat history yet. Use enter key to send prompt."
             except Exception as e:
                 result = f"Error loading chat history: {e}"
             self.root.after(0, lambda: self.print_output(result))
 
-        threading.Thread(target=fetch_history, daemon=True).start() # run on diff thread
+        threading.Thread(
+            target=fetch_history, daemon=True
+        ).start()  # run on diff thread
         self.start_messaging_mode()
 
     def submit_query(self, event=None):
         query = self.text_input.get()
         if not query:
-            self.print_output("Please enter a query.") # upon no input
+            self.print_output("Please enter a query.")  # upon no input
             return
 
         self.text_input.delete(0, tk.END)
@@ -120,7 +147,11 @@ class UserInterface:
         loading_popup = tk.Toplevel(self.root)
         loading_popup.title("Loading...")
         loading_popup.geometry("200x100")
-        tk.Label(loading_popup, text="Loading...", font=(self.custom_font[0], self.custom_font[1])).pack(expand=True)
+        tk.Label(
+            loading_popup,
+            text="Loading...",
+            font=(self.custom_font[0], self.custom_font[1]),
+        ).pack(expand=True)
         loading_popup.transient(self.root)
         loading_popup.grab_set()
 
@@ -132,13 +163,18 @@ class UserInterface:
                 history = self.api.get_chat_history()
 
                 if history and history.messages:
-                    result = "Chat History:\n" + "\n".join(f"- {msg.who}: {msg.content}" for msg in history.messages)
+                    result = "Chat History:\n" + "\n".join(
+                        f"- {msg.who}: {msg.content}" for msg in history.messages
+                    )
                 else:
                     result = "Sorry, I couldn't find a response."
                 self.root.after(0, lambda: self.print_output(result))
 
-            except Exception as e:
-                self.root.after(0, lambda: self.print_output(f"An error occurred: {e}"))
+            # except Exception as e:
+            #     self.root.after(
+            #         0, lambda e=e: self.print_output(f"An error occurred: {e}")
+            #     )
+
             # kill popup
             finally:
                 self.root.after(0, loading_popup.destroy)
@@ -169,19 +205,29 @@ class UserInterface:
         agent_var = tk.StringVar(add_doc_window)
         agent_var.set(agent_names[0])
 
-        agent_label = tk.Label(add_doc_window, text="Select Agent", font=(self.custom_font[0], self.custom_font[1]))
+        agent_label = tk.Label(
+            add_doc_window,
+            text="Select Agent",
+            font=(self.custom_font[0], self.custom_font[1]),
+        )
         agent_label.pack(pady=10)
 
         agent_dropdown = tk.OptionMenu(add_doc_window, agent_var, *agent_names)
         agent_dropdown.pack(pady=10)
 
-        doc_label = tk.Label(add_doc_window, text="Document Path", font=(self.custom_font[0], self.custom_font[1]))
+        doc_label = tk.Label(
+            add_doc_window,
+            text="Document Path",
+            font=(self.custom_font[0], self.custom_font[1]),
+        )
         doc_label.pack(pady=10)
 
-        doc_input = tk.Entry(add_doc_window, font=(self.custom_font[0], self.custom_font[1]))
+        doc_input = tk.Entry(
+            add_doc_window, font=(self.custom_font[0], self.custom_font[1])
+        )
         doc_input.pack(pady=5)
 
-        # choose from file explorer/finder 
+        # choose from file explorer/finder
         def select_file():
             path = filedialog.askopenfilename(title="Select Document")
             if path:
@@ -189,7 +235,13 @@ class UserInterface:
                 doc_input.insert(0, path)
 
         # button
-        select_button = tk.Button(add_doc_window, text="Select File", command=select_file, width=20, font=(self.custom_font[0], self.custom_font[1]))
+        select_button = tk.Button(
+            add_doc_window,
+            text="Select File",
+            command=select_file,
+            width=20,
+            font=(self.custom_font[0], self.custom_font[1]),
+        )
         select_button.pack(pady=5)
 
         # confirm doc
@@ -202,20 +254,31 @@ class UserInterface:
             try:
                 agent = self.api.get_agent(selected_agent)
             except KeyError:
-                messagebox.showerror("Error", f"No agent found with name: {selected_agent}")
+                messagebox.showerror(
+                    "Error", f"No agent found with name: {selected_agent}"
+                )
                 return
-            extension = doc_path.split(".")[-1]
-            document = Document(path=doc_path, extension=extension)
+            document = LocalDocument(path=doc_path)
             self.api.add_document(document, agent)
             messagebox.showinfo("Success", "Document added successfully.")
-            add_doc_window.destroy() # kill window
+            add_doc_window.destroy()  # kill window
 
         #  button
-        confirm_button = tk.Button(add_doc_window, text="Confirm", command=confirm_selection, width=20, font=(self.custom_font[0], self.custom_font[1]))
+        confirm_button = tk.Button(
+            add_doc_window,
+            text="Confirm",
+            command=confirm_selection,
+            width=20,
+            font=(self.custom_font[0], self.custom_font[1]),
+        )
         confirm_button.pack(pady=5)
 
     # self explanatory, lists docs
     def list_documents(self):
         docs = self.api.get_documents()
-        result = "Documents:\n" + "\n".join(f"- {doc.path}" for doc in docs) if docs else "No documents available."
+        result = (
+            "Documents:\n" + "\n".join(f"- {doc.path}" for doc in docs)
+            if docs
+            else "No documents available."
+        )
         self.print_output(result)

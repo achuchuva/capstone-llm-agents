@@ -23,7 +23,7 @@ class MASAPI:
         """Add a document to the MAS."""
         self.documents.append(document)
         self.agent_documents.setdefault(agent.name, []).append(document)
-        agent.capabilties.knowledge_base.ingest_document(document)
+        agent.capabilties.knowledge_base.ingest_knowledge_source(document)
 
     def query_mas(self, query: str) -> str:
         """Query the MAS with a prompt."""
