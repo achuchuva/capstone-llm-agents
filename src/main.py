@@ -6,6 +6,8 @@ from capabilities.knowledge_base import (
     DocumentReader,
     LocalDocumentKnowledgeExtractor,
     MultipleDocumentReader,
+    MultipleKnowledgeBase,
+    SelectAllKnowledgeBaseSelector,
 )
 from core.capability import Capability
 from implementations.faiss_kb import FAISSKnowledgeBase
@@ -57,11 +59,16 @@ reader = MultipleDocumentReader(
     ]
 )
 
-default_capabilities.append(
-    FAISSKnowledgeBase(
-        BasicChunker(100), LocalDocumentKnowledgeExtractor(reader), 3, 1000
-    )
+faiss_kb = FAISSKnowledgeBase(
+    BasicChunker(100), LocalDocumentKnowledgeExtractor(reader), 3, 1000
 )
+
+multi_kb = MultipleKnowledgeBase(
+    faiss_kb,
+    SelectAllKnowledgeBaseSelector(),
+)
+
+default_capabilities.append(multi_kb)
 
 # Agents
 # ======

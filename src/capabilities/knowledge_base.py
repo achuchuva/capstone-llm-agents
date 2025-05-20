@@ -307,6 +307,11 @@ class KnowledgeBase(Capability):
         """Retrieve knowledge related to a query."""
         raise NotImplementedError("This method should be implemented by subclasses.")
 
+    def copy(self) -> "KnowledgeBase":
+        """Create a copy of the knowledge base."""
+        # TODO assumes that the extractor and chunker are stateless
+        raise NotImplementedError("This method should be implemented by subclasses. ")
+
 
 class KnowledgeBaseSelector:
     """Gets the relevant knowledge bases for a query."""
@@ -339,10 +344,12 @@ class MultipleKnowledgeBase(KnowledgeBase):
 
     def __init__(
         self,
-        chunker: KnowledgeChunker,
-        extractor: KnowledgeExtractor,
+        base_knowledge_base: KnowledgeBase,
         knowledge_base_selector: KnowledgeBaseSelector,
     ):
+        self.base_knowledge_base = base_knowledge_base
+        chunker = base_knowledge_base.chunker
+        extractor = base_knowledge_base.extractor
         super().__init__(chunker, extractor)
         self.knowledge_bases = []
         self.knowledge_sources = set()
@@ -357,7 +364,7 @@ class MultipleKnowledgeBase(KnowledgeBase):
             if chunk.source not in self.knowledge_sources:
 
                 # if not, create a new knowledge base for the source
-                kb = KnowledgeBase(self.chunker, self.extractor)
+                kb = self.base_knowledge_base.copy()
 
                 # add the new knowledge base to system
                 self.knowledge_bases.append(kb)
@@ -389,4 +396,12 @@ class MultipleKnowledgeBase(KnowledgeBase):
 
     def get_relevant_knowledge_bases(self, query: str) -> list[KnowledgeBase]:
         """Get the relevant knowledge bases for a query."""
-        return self.knowledge_base_selector.get_relevant_knowledge_bases(query)
+        return self.knowledge_base_selector.get_relevant_knowledge_bases(
+            query, self.knowledge_bases
+        )
+
+    def copy(self) -> "KnowledgeBase":
+        """Create a copy of the knowledge base."""
+        return MultipleKnowledgeBase(
+            self.base_knowledge_base.copy(), self.knowledge_base_selector
+        )
