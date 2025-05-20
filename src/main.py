@@ -20,7 +20,7 @@ app = App(default_capabilities)
 
 # NOTE: the token count in BasicChunker does not do anything meaningful atm
 # because it gets ignored in the FAISSKnowledgeBase
-faiss_kb = FAISSKnowledgeBase(BasicChunker(1000), DEFAULT_EXTRACTOR, 3, 1000)
+faiss_kb = FAISSKnowledgeBase(BasicChunker(1000), DEFAULT_EXTRACTOR)
 
 multi_kb = MultipleKnowledgeBase(
     faiss_kb,

@@ -18,8 +18,6 @@ class FAISSKnowledgeBase(KnowledgeBase):
         self,
         chunker: KnowledgeChunker,
         extractor: KnowledgeExtractor,
-        top_k: int = 5,
-        max_tokens: int = 100,
     ):
         super().__init__(chunker, extractor)
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -27,8 +25,31 @@ class FAISSKnowledgeBase(KnowledgeBase):
         self.embeddings = None  # will hold numpy array of embeddings
         self.index = None  # will hold FAISS index
         self.chunks = []  # will hold chunks of text
-        self.top_k = top_k  # number of top k results to retrieve
-        self.max_tokens = max_tokens  # max tokens per chunk
+
+        self.top_k = None
+
+    def _estimate_document_heuristics(self, total_tokens: int) -> tuple[int, int]:
+        """
+        Heuristic that scales max_tokens and top_k based on document length.
+        - For very small docs (~500 tokens): ~64, 3
+        - For very large docs (~20000 tokens): ~1024, 9
+        """
+
+        # Scale max_tokens between 64 and 1024
+        max_tokens = int(64 + (min(total_tokens, 20000) / 20000) * (1024 - 64))
+
+        if total_tokens < 500:
+            top_k = 3
+        elif total_tokens < 2000:
+            top_k = 4
+        elif total_tokens < 5000:
+            top_k = 5
+        elif total_tokens < 10000:
+            top_k = 4
+        else:
+            top_k = 3
+
+        return max_tokens, top_k
 
     def ingest_chunks(self, chunks: list[Knowledge]):
         """Ingest chunks into the knowledge base."""
@@ -53,9 +74,17 @@ class FAISSKnowledgeBase(KnowledgeBase):
         # chunk
         all_chunks: list[str] = []
 
-        for i in range(0, len(token_ids), self.max_tokens):
+        # estimate heuristics
+        total_tokens = len(token_ids)
+        max_tokens, top_k = self._estimate_document_heuristics(total_tokens)
+
+        print(f"Total tokens: {total_tokens}")
+        print(f"Max tokens: {max_tokens}")
+        print(f"Top k: {top_k}")
+
+        for i in range(0, len(token_ids), max_tokens):
             start = i
-            end = i + self.max_tokens
+            end = i + max_tokens
             chunk_ids = token_ids[start:end]
             chunk_text = self.tokenizer.decode(chunk_ids)
             all_chunks.append(chunk_text)
@@ -72,6 +101,7 @@ class FAISSKnowledgeBase(KnowledgeBase):
         self.index = index
         self.embeddings = embeddings
         self.chunks = all_chunks
+        self.top_k = top_k
 
         # log
         print(f"Indexed {len(all_chunks)} chunks of text.")
@@ -92,8 +122,14 @@ class FAISSKnowledgeBase(KnowledgeBase):
         # TODO save source of knowledge
         source = None
 
+        # get top_k
+        top_k = self.top_k
+
+        if top_k is None:
+            raise ValueError("Top k is not set. Please ingest chunks first.")
+
         # Search each document index separately
-        distance, index = self.index.search(np.array(query_emb), self.top_k)
+        distance, index = self.index.search(np.array(query_emb), top_k)
         chunks = self.chunks
         for dist, idx in zip(distance[0], index[0]):
 
@@ -104,15 +140,11 @@ class FAISSKnowledgeBase(KnowledgeBase):
         # sort all results by distance and return top_k overall
         combined_results.sort(key=lambda x: x[0])
 
-        top_chunks = [
-            Knowledge(text, source) for _, text in combined_results[: self.top_k]
-        ]
+        top_chunks = [Knowledge(text, source) for _, text in combined_results[:top_k]]
 
         return top_chunks
 
     def copy(self) -> "FAISSKnowledgeBase":
         """Create a copy of the knowledge base."""
-        new_kb = FAISSKnowledgeBase(
-            self.chunker, self.extractor, self.top_k, self.max_tokens
-        )
+        new_kb = FAISSKnowledgeBase(self.chunker, self.extractor)
         return new_kb
