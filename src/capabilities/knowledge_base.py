@@ -312,6 +312,10 @@ class KnowledgeBase(Capability):
         # TODO assumes that the extractor and chunker are stateless
         raise NotImplementedError("This method should be implemented by subclasses. ")
 
+    def reset(self):
+        """Reset the knowledge base."""
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
 
 class KnowledgeBaseSelector:
     """Gets the relevant knowledge bases for a query."""
@@ -331,6 +335,41 @@ class SelectAllKnowledgeBaseSelector(KnowledgeBaseSelector):
     ) -> list[KnowledgeBase]:
         """Get the relevant knowledge bases for a query."""
         return knowledge_bases
+
+
+# TODO: make the folder generic in case you have a remote folder but who asked
+class LocalFolderKnowledgeSource(KnowledgeSource):
+    """A folder of many diffent documents."""
+
+    documents: list[LocalDocument]
+
+    def __init__(self, folder_path: str):
+        self.folder_path = folder_path
+        self.documents = []
+
+    def add_document(self, document: LocalDocument):
+        """Add a document to the folder."""
+        self.documents.append(document)
+
+    def get_documents(self) -> list[LocalDocument]:
+        """Get the documents in the folder."""
+        return self.documents
+
+    def remove_document(self, document: LocalDocument):
+        """Remove a document from the folder."""
+        self.documents.remove(document)
+
+    def edit_document(self, document: LocalDocument):
+        """Edit a document in the folder."""
+
+        # get matching document
+        for doc in self.documents:
+            if doc.path == document.path:
+                # update the document
+                doc.last_modified_time = document.last_modified_time
+                return
+
+        raise ValueError(f"Document not found in folder: {document.path}")
 
 
 class MultipleKnowledgeBase(KnowledgeBase):
@@ -405,3 +444,67 @@ class MultipleKnowledgeBase(KnowledgeBase):
         return MultipleKnowledgeBase(
             self.base_knowledge_base.copy(), self.knowledge_base_selector
         )
+
+    def remove_source(self, source: KnowledgeSource):
+        """Remove a source from the knowledge base."""
+        # remove the source from the map
+        kb = self.knowledge_source_map.pop(source, None)
+
+        if kb is None:
+            raise ValueError(f"Source not found in knowledge base: {source}")
+
+        # remove the knowledge base
+        self.knowledge_bases.remove(kb)
+        self.knowledge_sources.remove(source)
+
+    def reset(self):
+        """Reset the knowledge base."""
+        for kb in self.knowledge_bases:
+            kb.reset()
+
+
+class FolderKB(MultipleKnowledgeBase):
+    """A knowledge base that is a folder of many different documents."""
+
+    def __init__(self, folder_path: str, reader: DocumentReader):
+        super().__init__(
+            LocalDocumentKnowledgeExtractor(reader),
+            SelectAllKnowledgeBaseSelector(),
+        )
+        self.folder_path = folder_path
+        self.folder_source = LocalFolderKnowledgeSource(folder_path)
+
+    def get_documents(self) -> list[LocalDocument]:
+        """Get the documents in the folder."""
+        return self.folder_source.get_documents()
+
+    def add_document(self, document: LocalDocument):
+        """Add a document to the folder."""
+        self.folder_source.add_document(document)
+        self.ingest_knowledge_source(document)
+
+    def remove_document(self, document: LocalDocument):
+        """Remove a document from the folder."""
+        # get doc kb from the source
+        kb = self.knowledge_source_map.get(document)
+
+        if kb is None:
+            raise ValueError(f"Document not found in folder: {document.path}")
+
+        # remove the source
+        self.folder_source.remove_document(document)
+        self.remove_source(kb)
+
+    def update_document(self, document: LocalDocument):
+        """Edit a document in the folder."""
+        # get doc kb from the source
+        kb = self.knowledge_source_map.get(document)
+
+        if kb is None:
+            raise ValueError(f"Document not found in folder: {document.path}")
+
+        # edit folder source
+        self.folder_source.edit_document(document)
+
+        kb.reset()
+        self.ingest_knowledge_source(document)

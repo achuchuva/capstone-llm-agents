@@ -54,15 +54,6 @@ class FAISSKnowledgeBase(KnowledgeBase):
     def ingest_chunks(self, chunks: list[Knowledge]):
         """Ingest chunks into the knowledge base."""
 
-        # check first 10 chunks
-        print(f"First 10 chunks: {chunks[:10]}")
-        i = 0
-        for chunk in chunks:
-            print(f"Chunk {i}: {chunk.knowledge}")
-            i += 1
-            if i > 10:
-                break
-
         texts = [text for chunk in chunks for text in chunk.knowledge]
 
         # combine all chunks into a single string
@@ -77,10 +68,6 @@ class FAISSKnowledgeBase(KnowledgeBase):
         # estimate heuristics
         total_tokens = len(token_ids)
         max_tokens, top_k = self._estimate_document_heuristics(total_tokens)
-
-        print(f"Total tokens: {total_tokens}")
-        print(f"Max tokens: {max_tokens}")
-        print(f"Top k: {top_k}")
 
         for i in range(0, len(token_ids), max_tokens):
             start = i
@@ -148,3 +135,11 @@ class FAISSKnowledgeBase(KnowledgeBase):
         """Create a copy of the knowledge base."""
         new_kb = FAISSKnowledgeBase(self.chunker, self.extractor)
         return new_kb
+
+    def reset(self):
+        """Reset the knowledge base."""
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        self.embeddings = None
+        self.index = None
+        self.chunks = []
