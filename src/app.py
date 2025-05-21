@@ -1,4 +1,5 @@
 from autogen import ConversableAgent
+from capabilities.knowledge_base import FolderKB
 from core.agent import Agent
 from core.api import MASAPI
 from core.capabiliity_manager import AgentCapabilities
@@ -9,17 +10,19 @@ from core.mas import MAS
 from models.ag2_model import AG2Model
 from spoof.spoofed_capabilities import SpoofedCapabilities
 from spoof.spoofed_comm_protocol import CommunicationProtocolSpoof
+from user_interface.folder import FolderAPI
 from user_interface.inteface import UserInterface
 
 
 class App:
     """The main application class."""
 
-    def __init__(self, capabilities: list[Capability]):
+    # TODO refactor this out
+    def __init__(self, capabilities: list[Capability], folder_kb: FolderKB):
         user = HumanUser("User", "The human user of the MAS")
         communication_protocol = CommunicationProtocolSpoof(user)
         mas = MAS(communication_protocol, user)
-        api = MASAPI(mas)
+        api = MASAPI(mas, FolderAPI(folder_kb.folder_path, folder_kb))
         self.api = api
         self.interface = UserInterface(api)
         self.capabilities = capabilities

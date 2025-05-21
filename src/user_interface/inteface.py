@@ -17,7 +17,7 @@ class UserInterface:
         self.root.title("MAS GUI")
         self.root.geometry("800x500")
         self.custom_font = self.load_custom_font(
-            "user_interface/fonts/NebulaSans-Medium.ttf", size=16
+            "./src/user_interface/fonts/NebulaSans-Medium.ttf", size=16
         )  # just edit if you want a diff font, not certain this is working though
         self.setup_layout()
         self.create_buttons()
@@ -72,6 +72,7 @@ class UserInterface:
             ("View Chat/Query MAS", self.enter_messaging_mode),
             ("Add Document", self.add_document),
             ("List Documents", self.list_documents),
+            ("Update Folder Source", self.update_folder_source),
             ("Exit", self.root.quit),
         ]
         for label, command in buttons:
@@ -83,6 +84,9 @@ class UserInterface:
                 font=(self.custom_font[0], self.custom_font[1]),
             )
             button.pack(pady=5)
+
+    def update_folder_source(self):
+        self.api.update_folder_source()
 
     def run(self):
         # start

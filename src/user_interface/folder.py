@@ -19,6 +19,19 @@ class FolderAPI:
             documents_from_fs, documents_from_kb
         )
 
+        print("Updating folder...")
+        print("==================")
+        print("Added documents: ")
+        for doc in added_docs:
+            print(f"- {doc.path}")
+        print("Edited documents: ")
+        for doc in edited_docs:
+            print(f"- {doc.path}")
+        print("Removed documents: ")
+        for doc in removed_docs:
+            print(f"- {doc.path}")
+        print("Done.")
+
         # handle the changes
         for doc in added_docs:
             self.kb.add_document(doc)

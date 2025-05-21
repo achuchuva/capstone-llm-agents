@@ -132,6 +132,22 @@ class LocalDocument(Document):
         except (FileNotFoundError, OSError, PermissionError):
             return None
 
+    def __hash__(self):
+        return hash(f"{self.path}{self.last_modified_time}")
+
+    def __str__(self):
+        return f"Document(path={self.path}, extension={self.extension}, last_modified_time={self.last_modified_time})"
+
+    def __eq__(self, other):
+        if not isinstance(other, LocalDocument):
+            return False
+
+        return (
+            self.path == other.path
+            and self.extension == other.extension
+            and self.last_modified_time == other.last_modified_time
+        )
+
 
 class DocumentReader:
     """A document reader is a class that reads documents from a path."""
@@ -365,11 +381,11 @@ class LocalFolderKnowledgeSource(KnowledgeSource):
         # get matching document
         for doc in self.documents:
             if doc.path == document.path:
-                # update the document
-                doc.last_modified_time = document.last_modified_time
-                return
+                # remove the old document
+                self.documents.remove(doc)
 
-        raise ValueError(f"Document not found in folder: {document.path}")
+        # add the new document
+        self.documents.append(document)
 
 
 class MultipleKnowledgeBase(KnowledgeBase):
@@ -378,8 +394,8 @@ class MultipleKnowledgeBase(KnowledgeBase):
     knowledge_bases: list[KnowledgeBase]
     knowledge_sources: set[KnowledgeSource]
 
-    # map from source to knowledge base
-    knowledge_source_map: dict[KnowledgeSource, KnowledgeBase]
+    # map from knowledge base to source
+    knowledge_source_map: dict[KnowledgeBase, KnowledgeSource]
 
     def __init__(
         self,
@@ -447,8 +463,12 @@ class MultipleKnowledgeBase(KnowledgeBase):
 
     def remove_source(self, source: KnowledgeSource):
         """Remove a source from the knowledge base."""
+
+        # flip the map to get the knowledge base from the source
+        knowledge_source_map = MultipleKnowledgeBase.flip_map(self.knowledge_source_map)
+
         # remove the source from the map
-        kb = self.knowledge_source_map.pop(source, None)
+        kb = knowledge_source_map.get(source)
 
         if kb is None:
             raise ValueError(f"Source not found in knowledge base: {source}")
@@ -457,19 +477,53 @@ class MultipleKnowledgeBase(KnowledgeBase):
         self.knowledge_bases.remove(kb)
         self.knowledge_sources.remove(source)
 
+        # delete the kb and source from the map
+        del self.knowledge_source_map[kb]
+
+        print("Removed source:", source)
+        print("Removed kb:", kb)
+        print("Knowledge bases:", self.knowledge_bases)
+        print("Knowledge sources:", self.knowledge_sources)
+        print("Knowledge source map:", self.knowledge_source_map)
+
     def reset(self):
         """Reset the knowledge base."""
         for kb in self.knowledge_bases:
             kb.reset()
 
+        # TODO not sure if it should also remove the sources
+
+    def remove_all_sources(self):
+        """Remove all sources from the knowledge base."""
+        self.knowledge_bases = []
+        self.knowledge_sources = set()
+        self.knowledge_source_map = {}
+
+    @staticmethod
+    def flip_map(
+        knowledge_source_map: dict[KnowledgeBase, KnowledgeSource],
+    ) -> dict[KnowledgeSource, KnowledgeBase]:
+        """Flip the map from knowledge base to source to source to knowledge base."""
+        flipped_map: dict[KnowledgeSource, KnowledgeBase] = {}
+
+        for kb, source in knowledge_source_map.items():
+            flipped_map[source] = kb
+
+        return flipped_map
+
 
 class FolderKB(MultipleKnowledgeBase):
     """A knowledge base that is a folder of many different documents."""
 
-    def __init__(self, folder_path: str, reader: DocumentReader):
+    def __init__(
+        self,
+        folder_path: str,
+        base_knowledge_base: KnowledgeBase,
+        selector: KnowledgeBaseSelector,
+    ):
         super().__init__(
-            LocalDocumentKnowledgeExtractor(reader),
-            SelectAllKnowledgeBaseSelector(),
+            base_knowledge_base,
+            selector,
         )
         self.folder_path = folder_path
         self.folder_source = LocalFolderKnowledgeSource(folder_path)
@@ -485,26 +539,39 @@ class FolderKB(MultipleKnowledgeBase):
 
     def remove_document(self, document: LocalDocument):
         """Remove a document from the folder."""
-        # get doc kb from the source
-        kb = self.knowledge_source_map.get(document)
+
+        # flip the map to get the source from the knowledge base
+        knowledge_kb_map = MultipleKnowledgeBase.flip_map(self.knowledge_source_map)
+
+        kb = knowledge_kb_map.get(document)
+
+        print("Kb to remove doc from:", kb)
+        print("Document to remove:", document)
 
         if kb is None:
-            raise ValueError(f"Document not found in folder: {document.path}")
+            raise ValueError(f"Document not found in kb: {document.path}")
 
         # remove the source
         self.folder_source.remove_document(document)
-        self.remove_source(kb)
+
+        self.remove_source(document)
+
+        kb.reset()
 
     def update_document(self, document: LocalDocument):
         """Edit a document in the folder."""
+        # flip the map to get the source from the knowledge base
+        knowledge_kb_map = MultipleKnowledgeBase.flip_map(self.knowledge_source_map)
+
         # get doc kb from the source
-        kb = self.knowledge_source_map.get(document)
+        kb = knowledge_kb_map.get(document)
 
         if kb is None:
             raise ValueError(f"Document not found in folder: {document.path}")
 
-        # edit folder source
+        # edit
         self.folder_source.edit_document(document)
 
         kb.reset()
+
         self.ingest_knowledge_source(document)

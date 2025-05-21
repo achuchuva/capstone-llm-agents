@@ -4,6 +4,7 @@ from core.chat import ChatHistory
 from core.mas import MAS
 
 from capabilities.knowledge_base import Document
+from user_interface.folder import FolderAPI
 
 
 class MASAPI:
@@ -12,12 +13,30 @@ class MASAPI:
     documents: list[Document]
     agent_documents: dict[str, list[Document]]
 
-    def __init__(self, mas: MAS):
+    def __init__(self, mas: MAS, folder_api: FolderAPI):
         self.mas = mas
         self.documents = []
 
         # a dictionary of agent names to documents
         self.agent_documents = {}
+
+        self.folder_api = folder_api
+
+    # TODO refactor this out
+
+    def set_folder_source(self, folder_path: str):
+        """Set the folder source for the MAS."""
+        if folder_path == self.folder_api.folder_path:
+            return
+
+        self.folder_api.kb.reset()
+        self.folder_api.kb.remove_all_sources()
+        self.folder_api = FolderAPI(folder_path, self.folder_api.kb.copy())
+        self.folder_api.update()
+
+    def update_folder_source(self):
+        """Update the folder source for the MAS."""
+        self.folder_api.update()
 
     def add_document(self, document: Document, agent: Agent):
         """Add a document to the MAS."""
