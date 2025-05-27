@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit, QScrollBar, QScrollArea
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtCore import Qt
@@ -13,6 +13,8 @@ class App(QDialog):
         self.top = 10
         self.width = 700
         self.height = 500
+
+
         self.chat_output_one = QLabel()
         self.chat_output_two = QLabel()
         #self.chat_output_two.setStyleSheet("background-color: red;")
@@ -94,8 +96,10 @@ class App(QDialog):
         self.chat_output_one.setText("Chat output 1")
         self.chat_output_two.setText("Chat output 2")
 
+
         layout.addWidget(groupbox1,0,0)
         layout.addWidget(groupbox2, 0, 1)
+        #layout.addWidget(scroll_area)
 
         self.horizontalGroupBox.setLayout(layout)
 
