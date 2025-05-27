@@ -50,6 +50,7 @@ class App(QDialog):
         # Display the chat history in the QLabel
         chat_text = "\n".join(self.chat_history)
         self.chat_output_one.setText(chat_text)
+        self.chat_output_two.setText(chat_text)
 
     def initUI(self):
         self.setWindowTitle(self.title)
