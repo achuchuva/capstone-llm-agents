@@ -1,7 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit, QScrollBar, QScrollArea
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import Qt
 
 class App(QDialog):
 
@@ -10,10 +11,13 @@ class App(QDialog):
         self.title = 'PyQt5 layout - pythonspot.com'
         self.left = 10
         self.top = 10
-        self.width = 250
-        self.height = 100
+        self.width = 700
+        self.height = 500
+
+
         self.chat_output_one = QLabel()
         self.chat_output_two = QLabel()
+        #self.chat_output_two.setStyleSheet("background-color: red;")
 
         # Create a QLineEdit for typing new messages
         self.message_input = QLineEdit()
@@ -48,6 +52,7 @@ class App(QDialog):
         # Display the chat history in the QLabel
         chat_text = "\n".join(self.chat_history)
         self.chat_output_one.setText(chat_text)
+        self.chat_output_two.setText(chat_text)
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -63,10 +68,35 @@ class App(QDialog):
         self.show()
 
     def createGridLayout(self):
-        self.horizontalGroupBox = QGroupBox("Grid")
+        self.horizontalGroupBox = QGroupBox()
+        self.horizontalGroupBox.setStyleSheet("QGroupBox {border: none;}")
+        #self.horizontalGroupBox.setStyleSheet("border: none;")
+        #self.horizontalGroupBox.setStyleSheet('QGroupBox:title {subcontrol-origin: margin; subcontrol-position: top center;}')
         layout = QGridLayout()
-        layout.setColumnStretch(1, 4)
-        layout.setColumnStretch(2, 4)
+
+        #second boxes to put inside of first box
+        groupbox1 = QGroupBox("Reasoning")
+        groupbox1.setStyleSheet("QGroupBox {background-color: blue; margin-top: 20px; margin-right: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-right: 30px;}")
+        groupbox1_layout = QVBoxLayout()
+        groupbox1_layout.addWidget(self.chat_output_one, alignment=Qt.AlignmentFlag.AlignTop)
+        groupbox1.setLayout(groupbox1_layout)
+        scroll = QScrollArea()
+        scroll.setWidget(groupbox1)
+        scroll.setWidgetResizable(True)
+        scroll.setFixedHeight(400)
+
+        groupbox2 = QGroupBox("Output")
+        groupbox2.setStyleSheet("QGroupBox {background-color: red; margin-top: 20px; margin-left: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-left: 30px;}")
+        groupbox2_layout = QVBoxLayout()
+        groupbox2_layout.addWidget(self.chat_output_two, alignment=Qt.AlignmentFlag.AlignTop)
+        groupbox2.setLayout(groupbox2_layout)
+        scroll2 = QScrollArea()
+        scroll2.setWidget(groupbox2)
+        scroll2.setWidgetResizable(True)
+        scroll2.setFixedHeight(400)
+
+        #layout.setColumnStretch(1, 4)
+        #layout.setColumnStretch(2, 4)
 
         #chat_output_one = QLabel()
         #chat_output_two = QLabel()
@@ -74,8 +104,10 @@ class App(QDialog):
         self.chat_output_one.setText("Chat output 1")
         self.chat_output_two.setText("Chat output 2")
 
-        layout.addWidget(self.chat_output_one,0,0)
-        layout.addWidget(self.chat_output_two,0,1)
+
+        layout.addWidget(scroll,0,0)
+        layout.addWidget(scroll2, 0, 1)
+        #layout.addWidget(scroll_area)
 
         self.horizontalGroupBox.setLayout(layout)
 
