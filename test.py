@@ -98,6 +98,10 @@ class MainWindow(QMainWindow):
         #layout.addWidget(scroll_area)
 
         self.horizontalGroupBox.setLayout(layout)
+
+        ####Add to main
+        mainLayout.addWidget(self.horizontalGroupBox)
+
         ####text input code
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("Type your message here...and press Enter key.")
