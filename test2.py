@@ -2,6 +2,8 @@ import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
+from PyQt6 import QtCore
+from PyQt6.QtCore import Qt
 
 class App(QDialog):
 
@@ -13,7 +15,6 @@ class App(QDialog):
         self.width = 700
         self.height = 500
         self.chat_output_one = QLabel()
-        #self.chat_output_one.setStyleSheet("background-color: blue; font-size: 18px; margin-right: 80px;")
         self.chat_output_two = QLabel()
         #self.chat_output_two.setStyleSheet("background-color: red;")
 
@@ -76,13 +77,13 @@ class App(QDialog):
         groupbox1 = QGroupBox("Reasoning")
         groupbox1.setStyleSheet("QGroupBox {background-color: blue; margin-top: 20px; margin-right: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-right: 30px;}")
         groupbox1_layout = QVBoxLayout()
-        groupbox1_layout.addWidget(self.chat_output_one)
+        groupbox1_layout.addWidget(self.chat_output_one, alignment=Qt.AlignmentFlag.AlignTop)
         groupbox1.setLayout(groupbox1_layout)
 
         groupbox2 = QGroupBox("Output")
         groupbox2.setStyleSheet("QGroupBox {background-color: red; margin-top: 20px; margin-left: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-left: 30px;}")
         groupbox2_layout = QVBoxLayout()
-        groupbox2_layout.addWidget(self.chat_output_two)
+        groupbox2_layout.addWidget(self.chat_output_two, alignment=Qt.AlignmentFlag.AlignTop)
         groupbox2.setLayout(groupbox2_layout)
 
         #layout.setColumnStretch(1, 4)
