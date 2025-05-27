@@ -1,7 +1,9 @@
-from capabilities.knowledge_base import KnowledgeBase, Knowledge, Document
+from capabilities.knowledge_base import KnowledgeBase, Knowledge, Document, Folder
 from sentence_transformers import SentenceTransformer
 from transformers import GPT2TokenizerFast  # for token counting
-import fitz, faiss, numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from docx import Document as DocxDocument
+import os, fitz, faiss, numpy as np
 
 
 class FAISSKnowledgeBase(KnowledgeBase):
@@ -12,6 +14,9 @@ class FAISSKnowledgeBase(KnowledgeBase):
         supported_extensions: list[str],
         default_max_tokens: int = 100,
         default_top_k: int = 5,
+        path_keywords: list[str] = None,
+        reference_text: str = None,
+        similarity_threshold: float = 0.5,
     ):
         super().__init__("knowledge_base")
         self.supported_extensions = supported_extensions
@@ -20,9 +25,25 @@ class FAISSKnowledgeBase(KnowledgeBase):
         self.documents = []  # Each document stores its own settings and index
         self.default_max_tokens = default_max_tokens
         self.default_top_k = default_top_k
+        self.path_keywords = path_keywords or []
+        self.similarity_threshold = similarity_threshold
+        self.reference_embedding = None
+
+        if reference_text:
+            self.reference_embedding = self.model.encode([reference_text])[0]
 
     def is_supported_extension(self, extension: str) -> bool:
         return extension in self.supported_extensions
+
+    def _passes_path_filter(self, document: Document) -> bool:
+        if not self.path_keywords:
+            return True  # No filter applied
+
+        path_parts = document.path.lower().split(os.sep)
+        for part in path_parts:
+            if any(keyword in part for keyword in self.path_keywords):
+                return True
+        return False
 
     def _estimate_document_heuristics(self, total_tokens: int) -> tuple[int, int]:
         """
@@ -47,28 +68,56 @@ class FAISSKnowledgeBase(KnowledgeBase):
 
         return max_tokens, top_k
 
-    def ingest_document(self, document: Document):
+    def ingest_document(self, document: Document) -> bool:
         if not self.is_supported_extension(document.extension):
             raise ValueError(f"Unsupported file extension: {document.extension}")
 
-        # Extract text
+        # === Path heuristic ===
+        if not self._passes_path_filter(document):
+            print(
+                f"Skipped '{document.path}' — path did not match sprint-related keywords."
+            )
+            return False
+
+        # === Extract text ===
         texts = []
         if document.extension == "pdf":
             doc = fitz.open(document.path)
             for page in doc:
                 texts.append(page.get_text())
+        elif document.extension == "docx":
+            doc = DocxDocument(document.path)
+            texts = [para.text for para in doc.paragraphs if para.text.strip()]
         else:
             with open(document.path, "r", encoding="utf-8") as f:
                 texts = [f.read()]
 
         full_text = "\n".join(texts)
+
+        # === Similarity check ===
+        if self.reference_embedding is not None:
+            snippet = full_text[:1000]  # ~1000 characters snippet for similarity check
+            snippet_embedding = self.model.encode([snippet])[0]
+            similarity = cosine_similarity(
+                [self.reference_embedding], [snippet_embedding]
+            )[0][0]
+
+            if similarity < self.similarity_threshold:
+                print(
+                    f"Skipped '{document.path}' — similarity {similarity:.2f} < threshold {self.similarity_threshold}"
+                )
+                return False
+            else:
+                print(f"Accepted '{document.path}' — similarity {similarity:.2f}")
+
+        # === Tokenization ===
         token_ids = self.tokenizer.encode(full_text)
         total_tokens = len(token_ids)
 
-        # Apply heuristic to determine max_tokens and top_k
+        # === Heuristics ===
         max_tokens, top_k = self._estimate_document_heuristics(total_tokens)
 
-        # Chunking
+        # === Chunking ===
         all_chunks = []
         for i in range(0, total_tokens, max_tokens):
             chunk_ids = token_ids[i : i + max_tokens]
@@ -76,12 +125,15 @@ class FAISSKnowledgeBase(KnowledgeBase):
             all_chunks.append(chunk_text)
 
         if not all_chunks:
-            return
+            print(f"Skipped '{document.path}' — no valid chunks created.")
+            return False
 
+        # === Embeddings & Indexing ===
         embeddings = self.model.encode(all_chunks)
         dim = embeddings.shape[1]
         index = faiss.IndexFlatL2(dim)
         index.add(np.array(embeddings))
+        timestamp = os.path.getmtime(document.path)
 
         self.documents.append(
             {
@@ -91,6 +143,7 @@ class FAISSKnowledgeBase(KnowledgeBase):
                 "max_tokens": max_tokens,
                 "top_k": top_k,
                 "length": total_tokens,
+                "timestamps": [timestamp] * len(all_chunks),
             }
         )
 
@@ -98,24 +151,97 @@ class FAISSKnowledgeBase(KnowledgeBase):
             f"Ingested document ({total_tokens} tokens) with {len(all_chunks)} chunks, "
             f"max_tokens={max_tokens}, top_k={top_k}."
         )
+        return True
+
+    def ingest_folder(self, folder: Folder) -> list[Document]:
+        """Ingests all supported documents in a given folder."""
+        documents = folder.get_documents()
+        ingested_documents = []
+
+        for document in documents:
+            try:
+                ingested = self.ingest_document(document)
+            except Exception as e:
+                print(f"[ERROR] Failed to ingest {document.path}: {e}")
+            else:
+                if ingested:
+                    ingested_documents.append(document)
+
+        return ingested_documents
+
+    from sklearn.metrics.pairwise import cosine_similarity
+
+    def group_similar_chunks(
+        self,
+        chunks: list[str],
+        embeddings: list,
+        timestamps: list[float],
+        similarity_threshold: float = 0.85,
+    ) -> list[str]:
+        """
+        Groups similar chunks using cosine similarity and returns the most recent chunk from each group.
+
+        Args:
+            chunks: List of text chunks.
+            embeddings: List of vector embeddings corresponding to chunks.
+            timestamps: List of timestamps (floats) for each chunk.
+            similarity_threshold: Cosine similarity threshold for grouping.
+
+        Returns:
+            A list of representative chunks, one from each group.
+        """
+        if not chunks:
+            return []
+
+        sim_matrix = cosine_similarity(embeddings)
+        n = len(chunks)
+        visited = set()
+        groups = []
+
+        for i in range(n):
+            if i in visited:
+                continue
+            group = [i]
+            visited.add(i)
+            for j in range(i + 1, n):
+                if j not in visited and sim_matrix[i][j] >= similarity_threshold:
+                    group.append(j)
+                    visited.add(j)
+            groups.append(group)
+
+        # Select the most recent chunk from each group
+        selected_chunks = []
+        for group in groups:
+            latest_idx = max(group, key=lambda idx: timestamps[idx])
+            selected_chunks.append(chunks[latest_idx])
+
+        return selected_chunks
 
     def retrieve_related_knowledge(self, query: str) -> list[Knowledge]:
-        """
-        Retrieves top_k chunks most similar to the query.
-        Embeds query and searches FAISS index:contentReference[oaicite:20]{index=20}.
-        """
         if not self.documents:
             return []
 
         query_emb = self.model.encode([query])
-        combined_results = []
+        candidate_chunks = []
+        candidate_embs = []
+        candidate_times = []
 
         for doc in self.documents:
             D, I = doc["index"].search(np.array(query_emb), doc["top_k"])
             for dist, idx in zip(D[0], I[0]):
                 if idx < len(doc["chunks"]):
-                    combined_results.append((dist, doc["chunks"][idx]))
+                    candidate_chunks.append(doc["chunks"][idx])
+                    candidate_embs.append(doc["embeddings"][idx])
+                    candidate_times.append(doc["timestamps"][idx])
 
-        combined_results.sort(key=lambda x: x[0])
-        top_results = combined_results[: self.default_top_k]
-        return [Knowledge(text) for _, text in top_results]
+        # Group and filter conflicting/similar chunks
+        selected_chunks = self.group_similar_chunks(
+            candidate_chunks, candidate_embs, candidate_times
+        )
+
+        # Rank final selected chunks by similarity to query
+        final_embs = self.model.encode(selected_chunks)
+        similarities = cosine_similarity([query_emb[0]], final_embs)[0]
+        top_indices = np.argsort(similarities)[-self.default_top_k :][::-1]
+
+        return [Knowledge(selected_chunks[i]) for i in top_indices]

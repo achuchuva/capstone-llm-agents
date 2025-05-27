@@ -3,7 +3,7 @@ from core.capabiliity_manager import AgentCapabilities
 from core.chat import ChatHistory
 from core.mas import MAS
 
-from capabilities.knowledge_base import Document
+from capabilities.knowledge_base import Document, Folder
 
 
 class MASAPI:
@@ -21,9 +21,17 @@ class MASAPI:
 
     def add_document(self, document: Document, agent: Agent):
         """Add a document to the MAS."""
-        self.documents.append(document)
-        self.agent_documents.setdefault(agent.name, []).append(document)
-        agent.capabilties.knowledge_base.ingest_document(document)
+        ingested = agent.capabilties.knowledge_base.ingest_document(document)
+        if ingested:
+            self.documents.append(document)
+            self.agent_documents.setdefault(agent.name, []).append(document)
+
+    def add_folder(self, folder: Folder, agent: Agent):
+        """Add a folder of documents to the MAS."""
+        ingested_docs = agent.capabilties.knowledge_base.ingest_folder(folder)
+        for document in ingested_docs:
+            self.documents.append(document)
+            self.agent_documents.setdefault(agent.name, []).append(document)
 
     def query_mas(self, query: str) -> str:
         """Query the MAS with a prompt."""

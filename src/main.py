@@ -11,7 +11,17 @@ app = App(default_capabilities)
 # ============
 
 # add kb
-default_capabilities.append(FAISSKnowledgeBase(["pdf", "txt"], 1000, 3))
+default_capabilities.append(
+    FAISSKnowledgeBase(
+        ["pdf", "txt", "docx"],
+        1000,
+        3,
+        # ["sprint", "retrospective", "scrum", "burndown", "velocity"],
+        # (
+        #     "This document is related to agile sprint reports and can mention retrospectives, user stories, velocity charts, and burndown trends."
+        # ),
+    )
+)
 
 # Agents
 # ======
@@ -25,5 +35,18 @@ app.add_ag2_agent(
     ),
     default_capabilities,
 )
+
+# add specialised agent
+# app.add_ag2_agent(
+#     ConversableAgent(
+#         name="Sprint Report Assistant",
+#         system_message="""
+#             You are an assistant that specialises in analysing agile sprint reports and will only answer sprint related queries.
+#             Disregard any other queries politely and inform the user that you can only answer sprint related queries.
+#         """,
+#         llm_config={"api_type": "ollama", "model": "gemma3"},
+#     ),
+#     default_capabilities,
+# )
 
 app.run()
