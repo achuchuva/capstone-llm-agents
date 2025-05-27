@@ -13,7 +13,9 @@ class App(QDialog):
         self.width = 500
         self.height = 500
         self.chat_output_one = QLabel()
+        self.chat_output_one.setStyleSheet("background-color: blue; font-size: 18px; margin-right: 80px;")
         self.chat_output_two = QLabel()
+        self.chat_output_two.setStyleSheet("background-color: red;")
 
         # Create a QLineEdit for typing new messages
         self.message_input = QLineEdit()
@@ -63,10 +65,12 @@ class App(QDialog):
         self.show()
 
     def createGridLayout(self):
-        self.horizontalGroupBox = QGroupBox("Box 2")
+        self.horizontalGroupBox = QGroupBox("Box 1")
+        #self.horizontalGroupBox.setStyleSheet("QGroupBox { border: none; }")
         layout = QGridLayout()
-        layout.setColumnStretch(1, 4)
-        layout.setColumnStretch(2, 4)
+
+        #layout.setColumnStretch(1, 4)
+        #layout.setColumnStretch(2, 4)
 
         #chat_output_one = QLabel()
         #chat_output_two = QLabel()
