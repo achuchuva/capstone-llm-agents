@@ -8,9 +8,18 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QLineEdit, 
     QLabel, 
-    QStackedLayout
+    QStackedLayout,
+    QFileDialog,
+    QScrollBar,
+    QScrollArea,
+    QFrame,
+)
+from PyQt6.QtGui import (
+    QIcon,
+    QFont
 )
 from PyQt6.QtCore import Qt
+from qt_material import apply_stylesheet
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -41,6 +50,18 @@ class MainWindow(QMainWindow):
         # add to main layout at top
         mainLayout.addLayout(buttonsLayout)
 
+        '''
+        
+        HELLO JOEL GAMER !!!!!!!!
+        YOU WOULD PUT YOUR STUFF HERE AND ADD TO THE MAIN LAYOUT
+
+
+        *your code*
+        mainLayout.addLayout(*name of your layout*)
+        ETC !!!!!
+
+        '''
+
         # user input
         self.inputField = QLineEdit()
         self.inputField.setPlaceholderText("Ask anything")
@@ -61,13 +82,17 @@ class MainWindow(QMainWindow):
         listAgentsBackButton.clicked.connect(self.showMain)
         # add to layout and align to the left
         listAgentslayout.addWidget(listAgentsBackButton, alignment=Qt.AlignmentFlag.AlignLeft)
+
         # text
-        listAgentslayout.addWidget(QLabel("List of agents", alignment=Qt.AlignmentFlag.AlignCenter))
+        listAgentsTitle = QLabel("LIST OF AGENTS", alignment=Qt.AlignmentFlag.AlignHCenter)
+        listAgentsTitle.setFont(QFont("", 24, QFont.Weight.Bold))
+        listAgentslayout.addWidget(listAgentsTitle)
         self.pageStack.addWidget(self.listAgentsPage)
 
         '''UPLOAD DOCUMENTS PAGE'''
         self.uploadDocumentsPage = QWidget()
         uploadDocumentsLayout = QVBoxLayout(self.uploadDocumentsPage)
+
         # back button
         uploadDocumentsBackButton = QPushButton("Back")
         # make shorter
@@ -76,11 +101,39 @@ class MainWindow(QMainWindow):
         uploadDocumentsBackButton.clicked.connect(self.showMain)
         # add to layout and align to the left
         uploadDocumentsLayout.addWidget(uploadDocumentsBackButton, alignment=Qt.AlignmentFlag.AlignLeft)
-        # text
-        uploadDocumentsLayout.addWidget(QLabel("Upload your documents", alignment=Qt.AlignmentFlag.AlignCenter))
+
+        # select file
+        uploadDocumentsTitle = QLabel("UPLOAD DOCUMENTS", alignment=Qt.AlignmentFlag.AlignHCenter)
+        uploadDocumentsTitle.setFont(QFont("", 24, QFont.Weight.Bold))
+        uploadDocumentsLayout.addWidget(uploadDocumentsTitle)
+
+        uploadDocumentsLayout.setSpacing(5)
+        uploadDocumentsLayout.setContentsMargins(10, 10, 10, 10)
+        self.selectFileButton = QPushButton(" Select File")
+        self.selectFileButton.setIcon(QIcon("folder.png"))
+        self.selectFileButton.clicked.connect(self.selectFile)
+        uploadDocumentsLayout.addWidget(self.selectFileButton, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # doc list
+        self.documentContainer = QWidget()
+        self.documentListLayout = QVBoxLayout(self.documentContainer)
+        self.documentListLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # scroll thing
+        documentScroll = QScrollArea()
+        documentScroll.setWidgetResizable(True)
+        documentScroll.setFixedHeight(200)
+        documentScroll.setWidget(self.documentContainer)
+
+        # more scroll thing
+        documentScrollBar = QScrollBar(Qt.Orientation.Vertical)
+        documentScroll.setVerticalScrollBar(documentScrollBar)
+        uploadDocumentsLayout.addWidget(documentScroll)
+
+        # add layouts
         self.pageStack.addWidget(self.uploadDocumentsPage)
 
-        # add functionality to buttons
+        # add functionality to main buttons
         self.listAgentsButton.clicked.connect(self.showListAgents)
         self.uploadDocumentsButton.clicked.connect(self.showUploadDocuments)
         self.exitButton.clicked.connect(QApplication.quit) # exit app
@@ -97,9 +150,46 @@ class MainWindow(QMainWindow):
     def showUploadDocuments(self):
         self.pageStack.setCurrentWidget(self.uploadDocumentsPage)
 
+    def selectFile(self):
+        filePath, _ = QFileDialog.getOpenFileName(self, "Select Document")
+        if filePath:
+            print("File:", filePath)  
+            self.addDocument(filePath) 
+
+    def addDocument(self, filePath):
+        row = QHBoxLayout()
+        label = QLabel(filePath)
+        label.setWordWrap(True)
+
+        # button
+        removeButton = QPushButton()
+        removeButton.setIcon(QIcon("bin.png"))  
+        removeButton.setMaximumWidth(30)
+
+        container = QWidget()
+        container.setLayout(row)
+
+        # remove file row
+        def removeRow():
+            container.setParent(None)
+            container.deleteLater()
+        removeButton.clicked.connect(removeRow)
+
+        row.addWidget(label)
+        row.addStretch()
+        row.addWidget(removeButton)
+
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        self.documentListLayout.addWidget(line)
+        self.documentListLayout.addWidget(container)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    #app.setStyle("Fusion")
     window = MainWindow()
-    # window.resize(width, height)
+    window.resize(700, 500)
+    apply_stylesheet(app, theme='light_red.xml',)
     window.show()
     sys.exit(app.exec())
