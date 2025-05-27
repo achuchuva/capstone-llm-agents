@@ -75,7 +75,7 @@ class App(QDialog):
         layout = QGridLayout()
 
         #second boxes to put inside of first box
-        groupbox1 = QGroupBox("Reasoning")
+        groupbox1 = QGroupBox("Details")
         groupbox1.setStyleSheet("QGroupBox {background-color: blue; margin-top: 20px; margin-right: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-right: 30px;}")
         groupbox1_layout = QVBoxLayout()
         groupbox1_layout.addWidget(self.chat_output_one, alignment=Qt.AlignmentFlag.AlignTop)
