@@ -80,12 +80,20 @@ class App(QDialog):
         groupbox1_layout = QVBoxLayout()
         groupbox1_layout.addWidget(self.chat_output_one, alignment=Qt.AlignmentFlag.AlignTop)
         groupbox1.setLayout(groupbox1_layout)
+        scroll = QScrollArea()
+        scroll.setWidget(groupbox1)
+        scroll.setWidgetResizable(True)
+        scroll.setFixedHeight(400)
 
         groupbox2 = QGroupBox("Output")
         groupbox2.setStyleSheet("QGroupBox {background-color: red; margin-top: 20px; margin-left: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-left: 30px;}")
         groupbox2_layout = QVBoxLayout()
         groupbox2_layout.addWidget(self.chat_output_two, alignment=Qt.AlignmentFlag.AlignTop)
         groupbox2.setLayout(groupbox2_layout)
+        scroll2 = QScrollArea()
+        scroll2.setWidget(groupbox2)
+        scroll2.setWidgetResizable(True)
+        scroll2.setFixedHeight(400)
 
         #layout.setColumnStretch(1, 4)
         #layout.setColumnStretch(2, 4)
@@ -97,8 +105,8 @@ class App(QDialog):
         self.chat_output_two.setText("Chat output 2")
 
 
-        layout.addWidget(groupbox1,0,0)
-        layout.addWidget(groupbox2, 0, 1)
+        layout.addWidget(scroll,0,0)
+        layout.addWidget(scroll2, 0, 1)
         #layout.addWidget(scroll_area)
 
         self.horizontalGroupBox.setLayout(layout)
