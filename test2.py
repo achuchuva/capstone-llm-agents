@@ -66,17 +66,19 @@ class App(QDialog):
 
     def createGridLayout(self):
         self.horizontalGroupBox = QGroupBox()
-        self.horizontalGroupBox.setStyleSheet("border: none;")
+        self.horizontalGroupBox.setStyleSheet("QGroupBox {border: none;} QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center;}")
+        #self.horizontalGroupBox.setStyleSheet("border: none;")
+        #self.horizontalGroupBox.setStyleSheet('QGroupBox:title {subcontrol-origin: margin; subcontrol-position: top center;}')
         layout = QGridLayout()
 
         #second boxes to put inside of first box
-        groupbox1 = QGroupBox("Box 2")
+        groupbox1 = QGroupBox("Reasoning")
         groupbox1.setStyleSheet("background-color: blue; margin-top: 20px;")
         groupbox1_layout = QVBoxLayout()
         groupbox1_layout.addWidget(self.chat_output_one)
         groupbox1.setLayout(groupbox1_layout)
 
-        groupbox2 = QGroupBox("Box 3")
+        groupbox2 = QGroupBox("Output")
         groupbox2.setStyleSheet("background-color: red; margin-top: 20px;")
         groupbox2_layout = QVBoxLayout()
         groupbox2_layout.addWidget(self.chat_output_two)
