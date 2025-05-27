@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
 
         #second boxes to put inside of first box
         groupbox1 = QGroupBox("Details")
-        groupbox1.setStyleSheet("QGroupBox {background-color: blue; margin-top: 20px; margin-right: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-right: 30px;}")
+        groupbox1.setStyleSheet("QGroupBox {background-color: blue; margin-top: 40px; margin-right: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-right: 30px;}")
         groupbox1_layout = QVBoxLayout()
         groupbox1_layout.addWidget(self.chat_output_one, alignment=Qt.AlignmentFlag.AlignTop)
         groupbox1.setLayout(groupbox1_layout)
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         scroll.setFixedHeight(300)
 
         groupbox2 = QGroupBox("Output")
-        groupbox2.setStyleSheet("QGroupBox {background-color: red; margin-top: 20px; margin-left: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-left: 30px;}")
+        groupbox2.setStyleSheet("QGroupBox {background-color: red; margin-top: 40px; margin-left: 30px;}  QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top center; margin-left: 30px;}")
         groupbox2_layout = QVBoxLayout()
         groupbox2_layout.addWidget(self.chat_output_two, alignment=Qt.AlignmentFlag.AlignTop)
         groupbox2.setLayout(groupbox2_layout)
