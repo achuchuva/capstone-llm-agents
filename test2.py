@@ -2,7 +2,6 @@ import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
-from PyQt6 import QtCore
 from PyQt6.QtCore import Qt
 
 class App(QDialog):
