@@ -11,7 +11,7 @@ class App(QDialog):
         self.left = 10
         self.top = 10
         self.width = 700
-        self.height = 700
+        self.height = 500
         self.chat_output_one = QLabel()
         #self.chat_output_one.setStyleSheet("background-color: blue; font-size: 18px; margin-right: 80px;")
         self.chat_output_two = QLabel()
