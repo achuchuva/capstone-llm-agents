@@ -13,9 +13,9 @@ class App(QDialog):
         self.width = 500
         self.height = 500
         self.chat_output_one = QLabel()
-        self.chat_output_one.setStyleSheet("background-color: blue; font-size: 18px; margin-right: 80px;")
+        #self.chat_output_one.setStyleSheet("background-color: blue; font-size: 18px; margin-right: 80px;")
         self.chat_output_two = QLabel()
-        self.chat_output_two.setStyleSheet("background-color: red;")
+        #self.chat_output_two.setStyleSheet("background-color: red;")
 
         # Create a QLineEdit for typing new messages
         self.message_input = QLineEdit()
@@ -65,9 +65,22 @@ class App(QDialog):
         self.show()
 
     def createGridLayout(self):
-        self.horizontalGroupBox = QGroupBox("Box 1")
-        #self.horizontalGroupBox.setStyleSheet("QGroupBox { border: none; }")
+        self.horizontalGroupBox = QGroupBox()
+        self.horizontalGroupBox.setStyleSheet("border: none;")
         layout = QGridLayout()
+
+        #second boxes to put inside of first box
+        groupbox1 = QGroupBox("Box 2")
+        groupbox1.setStyleSheet("background-color: blue; margin-top: 20px;")
+        groupbox1_layout = QVBoxLayout()
+        groupbox1_layout.addWidget(self.chat_output_one)
+        groupbox1.setLayout(groupbox1_layout)
+
+        groupbox2 = QGroupBox("Box 3")
+        groupbox2.setStyleSheet("background-color: red; margin-top: 20px;")
+        groupbox2_layout = QVBoxLayout()
+        groupbox2_layout.addWidget(self.chat_output_two)
+        groupbox2.setLayout(groupbox2_layout)
 
         #layout.setColumnStretch(1, 4)
         #layout.setColumnStretch(2, 4)
@@ -78,8 +91,8 @@ class App(QDialog):
         self.chat_output_one.setText("Chat output 1")
         self.chat_output_two.setText("Chat output 2")
 
-        layout.addWidget(self.chat_output_one,0,0)
-        layout.addWidget(self.chat_output_two,0,1)
+        layout.addWidget(groupbox1,0,0)
+        layout.addWidget(groupbox2, 0, 1)
 
         self.horizontalGroupBox.setLayout(layout)
 
