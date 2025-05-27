@@ -464,74 +464,108 @@ if __name__ == "__main__":
     sys.exit(app.exec())
 '''
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLineEdit,
+    QLabel,
+    QStackedLayout
+)
+from PyQt6.QtCore import Qt
 
-class ChatApp(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        # Set the window properties (title and initial size)
-        self.setWindowTitle("Chat Application")
+        self.setWindowTitle("MAS Application")
         self.setGeometry(100, 100, 400, 300)  # (x, y, width, height)
 
+        central = QWidget()
+        self.setCentralWidget(central)
 
+        # pages layout
+        self.pageStack = QStackedLayout()
 
-        # Create a central widget for the main window
-        central_widget = QWidget()
-        central_widget2 = QWidget()
-        self.setCentralWidget(central_widget)
-        #self.setCentralWidget(central_widget2)
+        # main GUI page
+        mainPage = QWidget()
+        # stack options vertically
+        mainLayout = QVBoxLayout(mainPage)
+        # buttons are stacked horizontally
+        buttonsLayout = QHBoxLayout()
+        # buttons
+        self.listAgentsButton = QPushButton("List Agents")
+        self.uploadDocumentsButton = QPushButton("Upload Documents")
+        self.exitButton = QPushButton("Exit")
 
-        # Create a QVBoxLayout to arrange the widgets
-        layout = QVBoxLayout()
-        #layout2 = QVBoxLayout()
+        # add to widget
+        buttonsLayout.addWidget(self.listAgentsButton)
+        buttonsLayout.addWidget(self.uploadDocumentsButton)
+        buttonsLayout.addWidget(self.exitButton)
+        # add to main layout at top
+        mainLayout.addLayout(buttonsLayout)
 
-        # Create a QLabel widget to display chat messages
-        self.chat_label = QLabel()
-        self.chat_label.setWordWrap(True)  # Wrap long messages
-        layout.addWidget(self.chat_label)
-        #########
-        self.chat_label2 = QLabel()
-        self.chat_label2.setWordWrap(True)  # Wrap long messages
-        layout.addWidget(self.chat_label2)
+        # user input
+        self.inputField = QLineEdit()
+        self.inputField.setPlaceholderText("Ask anything")
+        # add to main layout below buttons
+        mainLayout.addWidget(self.inputField)
 
-        # Create a QLineEdit for typing new messages
-        self.message_input = QLineEdit()
-        self.message_input.setPlaceholderText("Type your message here...and press Enter key.")
-        self.message_input.returnPressed.connect(self.send_message)
+        # add main page to pages layout
+        self.pageStack.addWidget(mainPage)
 
-        layout.addWidget(self.message_input)
-        #layout.addWidget(self.message_input)
+        '''LIST AGENTS PAGE'''
+        self.listAgentsPage = QWidget()
+        listAgentslayout = QVBoxLayout(self.listAgentsPage)
+        # back button
+        listAgentsBackButton = QPushButton("Back")
+        # make shorter
+        listAgentsBackButton.setMaximumWidth(100)
+        # button functionality
+        listAgentsBackButton.clicked.connect(self.showMain)
+        # add to layout and align to the left
+        listAgentslayout.addWidget(listAgentsBackButton, alignment=Qt.AlignmentFlag.AlignLeft)
+        # text
+        listAgentslayout.addWidget(QLabel("List of agents", alignment=Qt.AlignmentFlag.AlignCenter))
+        self.pageStack.addWidget(self.listAgentsPage)
 
-        # Set the layout for the central widget
-        central_widget.setLayout(layout)
+        '''UPLOAD DOCUMENTS PAGE'''
+        self.uploadDocumentsPage = QWidget()
+        uploadDocumentsLayout = QVBoxLayout(self.uploadDocumentsPage)
+        # back button
+        uploadDocumentsBackButton = QPushButton("Back")
+        # make shorter
+        uploadDocumentsBackButton.setMaximumWidth(100)
+        # button functionality
+        uploadDocumentsBackButton.clicked.connect(self.showMain)
+        # add to layout and align to the left
+        uploadDocumentsLayout.addWidget(uploadDocumentsBackButton, alignment=Qt.AlignmentFlag.AlignLeft)
+        # text
+        uploadDocumentsLayout.addWidget(QLabel("Upload your documents", alignment=Qt.AlignmentFlag.AlignCenter))
+        self.pageStack.addWidget(self.uploadDocumentsPage)
 
-        # Initialize chat history
-        self.chat_history = []
+        # add functionality to buttons
+        self.listAgentsButton.clicked.connect(self.showListAgents)
+        self.uploadDocumentsButton.clicked.connect(self.showUploadDocuments)
+        self.exitButton.clicked.connect(QApplication.quit) # exit app
 
-    def send_message(self):
-        # Get the message from the input field
-        message = self.message_input.text()
+        central.setLayout(self.pageStack)
 
-        # Append the message to the chat history
-        self.chat_history.append(message)
+    # functions
+    def showMain(self):
+        self.pageStack.setCurrentIndex(0)
 
-        # Update the chat display
-        self.update_chat_display()
+    def showListAgents(self):
+        self.pageStack.setCurrentWidget(self.listAgentsPage)
 
-        # Clear the input field
-        self.message_input.clear()
-
-    def update_chat_display(self):
-        # Display the chat history in the QLabel
-        chat_text = "\n".join(self.chat_history)
-        self.chat_label.setText(chat_text)
-
-def main():
-    app = QApplication(sys.argv)
-    window = ChatApp()
-    window.show()
-    sys.exit(app.exec())
+    def showUploadDocuments(self):
+        self.pageStack.setCurrentWidget(self.uploadDocumentsPage)
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    # window.resize(width, height)
+    window.show()
+    sys.exit(app.exec())

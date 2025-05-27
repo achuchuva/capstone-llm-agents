@@ -10,8 +10,8 @@ class App(QDialog):
         self.title = 'PyQt5 layout - pythonspot.com'
         self.left = 10
         self.top = 10
-        self.width = 250
-        self.height = 100
+        self.width = 500
+        self.height = 500
         self.chat_output_one = QLabel()
         self.chat_output_two = QLabel()
 
@@ -63,7 +63,7 @@ class App(QDialog):
         self.show()
 
     def createGridLayout(self):
-        self.horizontalGroupBox = QGroupBox("Grid")
+        self.horizontalGroupBox = QGroupBox("Box 2")
         layout = QGridLayout()
         layout.setColumnStretch(1, 4)
         layout.setColumnStretch(2, 4)
