@@ -10,8 +10,8 @@ class App(QDialog):
         self.title = 'PyQt5 layout - pythonspot.com'
         self.left = 10
         self.top = 10
-        self.width = 500
-        self.height = 500
+        self.width = 700
+        self.height = 700
         self.chat_output_one = QLabel()
         #self.chat_output_one.setStyleSheet("background-color: blue; font-size: 18px; margin-right: 80px;")
         self.chat_output_two = QLabel()
@@ -74,13 +74,13 @@ class App(QDialog):
 
         #second boxes to put inside of first box
         groupbox1 = QGroupBox("Reasoning")
-        groupbox1.setStyleSheet("background-color: blue; margin-top: 20px;")
+        groupbox1.setStyleSheet("background-color: blue; margin-top: 50px; margin-right: 20px;")
         groupbox1_layout = QVBoxLayout()
         groupbox1_layout.addWidget(self.chat_output_one)
         groupbox1.setLayout(groupbox1_layout)
 
         groupbox2 = QGroupBox("Output")
-        groupbox2.setStyleSheet("background-color: red; margin-top: 20px;")
+        groupbox2.setStyleSheet("background-color: red; margin-top: 50px; margin-left:")
         groupbox2_layout = QVBoxLayout()
         groupbox2_layout.addWidget(self.chat_output_two)
         groupbox2.setLayout(groupbox2_layout)
