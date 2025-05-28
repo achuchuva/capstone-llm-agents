@@ -1,3 +1,5 @@
+import random
+
 from capabilities.memory import Memory, MemoryManager
 from core.chat import ChatHistory, ChatMessage
 
@@ -15,17 +17,16 @@ class MemoryManagerSpoof(MemoryManager):
 
     def load_memories_relevant_to_query(self, query: str) -> list[Memory]:
         """Load memories relevant to the query."""
-        # for now assume only short term memories are relevant
-        if len(self.short_term_memories) == 0:
-            return []
-        # select the last 5 memories
-        return self.short_term_memories[-5:]
+        # for now assume that first 3 memories are relevant
+        return self.long_term_memories[:3] + self.short_term_memories[:3]
 
     def is_suitable_for_long_term(self, memory: Memory) -> bool:
         """Decide if memory is suited for long term or short term storage.
         Returns True if memory is suited for long term storage, False for short term.
         """
-        return False
+        # coin flip if suitable for long term or short term
+        chance = 0.5
+        return random.random() < chance
 
     def store_memory_long_term(self, memory: Memory) -> None:
         """Store memory long term."""
@@ -47,19 +48,11 @@ class MemoryManagerSpoof(MemoryManager):
         """Clear short term memory."""
         self.short_term_memories = []
 
-    def clear_long_term_memory(self) -> None:
-        """Clear long term memory."""
-        self.long_term_memories = []
-
     def update_memory_from_chat_history(self, chat_history: ChatHistory) -> None:
         """Update memory from chat history."""
 
-        # clear memory
-        self.clear_short_term_memory()
-        self.clear_long_term_memory()
-
-        # get all messages from the chat history
-        messages = chat_history.get_messages()
+        # get last two messages if possible
+        messages = chat_history.get_last_n_messages(2)
 
         if len(messages) == 0:
             return
@@ -70,9 +63,7 @@ class MemoryManagerSpoof(MemoryManager):
     def update_memory_from_last_message(self, last_message: ChatMessage) -> None:
         """Update memory from the last message. Decides if it is suited for long term or short term storage."""
         # decide if it is suited for long term or short term storage
-
-        who = last_message.who
-        memory = Memory(f"{who.role}:{last_message.content}")
+        memory = Memory(last_message.content)
 
         if self.is_suitable_for_long_term(memory):
             self.store_memory_long_term(memory)

@@ -52,7 +52,3 @@ class MASAPI:
     def get_chat_history(self) -> ChatHistory:
         """Get the chat history."""
         return self.mas.chat_history
-
-    def set_chat_history(self, chat: ChatHistory):
-        """Set the chat history for the MAS."""
-        self.mas.chat_history = chat
