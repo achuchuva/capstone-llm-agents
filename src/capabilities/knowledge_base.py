@@ -75,6 +75,8 @@ class KnowledgeBase(Capability):
         for k in knowledge:
             self.add_knowledge(k)
 
+        return True
+
     def ingest_folder(self, folder: Folder):
         """Ingests all supported documents in a given folder."""
         documents = folder.get_documents()
@@ -91,4 +93,8 @@ class KnowledgeBase(Capability):
 
     def retrieve_related_knowledge(self, query: str) -> list[Knowledge]:
         """Retrieve knowledge related to a query."""
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    def update_folder(self, folder: Folder) -> list[Document]:
+        """Update the knowledge base with documents from a folder. Returns the removed documents."""
         raise NotImplementedError("This method should be implemented by subclasses.")

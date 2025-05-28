@@ -11,10 +11,12 @@ class MASAPI:
 
     documents: list[Document]
     agent_documents: dict[str, list[Document]]
+    folders: list[Folder]
 
     def __init__(self, mas: MAS):
         self.mas = mas
         self.documents = []
+        self.folders = []
 
         # a dictionary of agent names to documents
         self.agent_documents = {}
@@ -32,6 +34,8 @@ class MASAPI:
         for document in ingested_docs:
             self.documents.append(document)
             self.agent_documents.setdefault(agent.name, []).append(document)
+
+        self.folders.append(folder)
 
     def query_mas(self, query: str) -> str:
         """Query the MAS with a prompt."""
@@ -60,3 +64,25 @@ class MASAPI:
     def get_chat_history(self) -> ChatHistory:
         """Get the chat history."""
         return self.mas.chat_history
+
+    def get_folders(self) -> list[Folder]:
+        """Get a list of folders in the MAS."""
+        return self.folders
+
+    def update_folder(self, folder: Folder, agent: Agent):
+        """Update a folder of documents in the MAS."""
+        kb = agent.capabilties.knowledge_base
+
+        deleted_docs = kb.update_folder(folder)
+
+        deleted_doc_paths = [doc.path for doc in deleted_docs]
+
+        # get matching documents in the agent's document list
+        matching_docs = [doc for doc in self.documents if doc.path in deleted_doc_paths]
+
+        # Remove deleted documents from the agent's document list
+        for doc in matching_docs:
+            if doc in self.documents:
+                self.documents.remove(doc)
+            if doc in self.agent_documents.get(agent.name, []):
+                self.agent_documents[agent.name].remove(doc)

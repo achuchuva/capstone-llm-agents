@@ -76,6 +76,7 @@ class UserInterface:
             ("View Chat/Query MAS", self.enter_messaging_mode),
             ("Add Document", self.add_document),
             ("List Documents", self.list_documents),
+            ("Update Folders", self.update_folders),
             ("Exit", self.root.quit),
         ]
         for label, command in buttons:
@@ -294,3 +295,10 @@ class UserInterface:
             else "No documents available."
         )
         self.print_output(result)
+
+    def update_folders(self):
+        folders = self.api.get_folders()
+
+        for folder in folders:
+            for agent in self.api.get_agents():
+                self.api.update_folder(folder, agent)

@@ -137,6 +137,7 @@ class FAISSKnowledgeBase(KnowledgeBase):
 
         self.documents.append(
             {
+                "path": document.path,
                 "chunks": all_chunks,
                 "embeddings": embeddings,
                 "index": index,
@@ -144,6 +145,7 @@ class FAISSKnowledgeBase(KnowledgeBase):
                 "top_k": top_k,
                 "length": total_tokens,
                 "timestamps": [timestamp] * len(all_chunks),
+                "document": document,
             }
         )
 
@@ -169,7 +171,64 @@ class FAISSKnowledgeBase(KnowledgeBase):
 
         return ingested_documents
 
-    from sklearn.metrics.pairwise import cosine_similarity
+    def update_folder(self, folder: Folder) -> list[Document]:
+        """Update the knowledge base with new, modified, or deleted documents from a folder."""
+
+        current_doc_paths = {doc["path"]: doc for doc in self.documents}
+        folder_documents = folder.get_documents()
+
+        # Paths of documents currently in the folder
+        folder_paths = {doc.path for doc in folder_documents}
+
+        new_documents = []
+        modified_documents = []
+
+        # Step 1: Identify new and modified documents
+        for document in folder_documents:
+            if document.path not in current_doc_paths:
+                new_documents.append(document)
+            else:
+                current_timestamp = os.path.getmtime(document.path)
+                if (
+                    current_timestamp
+                    > current_doc_paths[document.path]["timestamps"][0]
+                ):
+                    modified_documents.append(document)
+
+        # Step 2: Identify and remove deleted documents
+        deleted_docs = []
+
+        deleted_paths = set(current_doc_paths.keys()) - folder_paths
+        if deleted_paths:
+            print(f"[INFO] Deleted documents: {deleted_paths}")
+
+        for path in deleted_paths:
+            deleted_docs.append(current_doc_paths[path]["document"])
+
+        self.documents = [
+            doc for doc in self.documents if doc["path"] not in deleted_paths
+        ]
+
+        # Step 3: Remove outdated entries for modified documents
+        modified_paths = {doc.path for doc in modified_documents}
+        self.documents = [
+            doc for doc in self.documents if doc["path"] not in modified_paths
+        ]
+
+        # Step 4: Log updates
+        for new_doc in new_documents:
+            print(f"[INFO] New document found: {new_doc.path}")
+        for mod_doc in modified_documents:
+            print(f"[INFO] Modified document found: {mod_doc.path}")
+
+        # Step 5: Ingest new and modified documents
+        for document in new_documents + modified_documents:
+            try:
+                self.ingest_document(document)
+            except Exception as e:
+                print(f"[ERROR] Failed to update {document.path}: {e}")
+
+        return deleted_docs
 
     def group_similar_chunks(
         self,
