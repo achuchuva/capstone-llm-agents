@@ -55,8 +55,8 @@ def plan_formatter(new_prompt: str, plan: str):
 
 
 def form_group_chat():
-   global agent_list
-   for val in agent_list:
+   global plan_array
+   for val in plan_array:
       print("From formated array")
       print(val)
    return "I am the next agent function"
