@@ -82,10 +82,20 @@ user_proxy = autogen.UserProxyAgent(
 planner_agent = ConversableAgent(
     name="planner_agent",
     system_message="""
-    You are to Create a plan for which agents will be needed and in what order they should be called based on a query.
-    Format to send to the plan_formatter is: newprompt: generate a prompt plan: agent1,agent2
-    No other data should be included in this function string only the new prompt and a list of agents. The plan and new prompt can't be blank.
-    The list of agents curently available are {weather_agent, wikipedia_agent, location_agent, history_agent} Do not call more agents than what is needed""",  #Should change to a vairable string for agent list to make it easier to change
+   You are to create a plan for which agents will be needed and in what order they should be called based on a user query.
+
+   Format to send to the plan_formatter is:
+   newprompt: <your reformulated prompt>
+   plan: agent1, agent2
+
+   Guidelines:
+   - Only include the new prompt and the list of agents—no other text.
+   - The prompt must cover the whole question
+   - Make sure to include a list of agents in the 'plan' field.
+   - Use only the necessary agents.
+   - Order the agents in order they should be exicuted
+   - The list of currently available agents is: {weather_agent, wikipedia_agent, location_agent, history_agent}
+   """,  #Should change to a vairable string for agent list to make it easier to change
     llm_config=llm_config,
 )
 
@@ -139,7 +149,7 @@ register_function(
     description="Used to format a plan of which agents should talk next and with what prompt",  # A description of the tool.
 )
 
-'''
+#'''
 register_function(
     form_group_chat,
     caller=planner_agent,  # The assistant agent can suggest calls to the calculator.
@@ -147,13 +157,13 @@ register_function(
     name="form_group_chat",  # By default, the function name is used as the tool name.
     description="Used to create a groupchat based off the formatted plan",  # A description of the tool.
 )
-'''
+#'''
 
 user_message = (
     "I want to know what is A horse from wikipedia and if it is raining outside"
 )
 user_message2 = (
-    "I want to know how long it takes to get between pakenham and richmond station in victoria"
+    "I want to know what is A horse from wikipedia and if it is raining outside"
 )
 
 #user_message3 = input("Enter a query here -->")
