@@ -214,10 +214,19 @@ number_of_rounds = len(agents_needed)
 #print(number_of_rounds)
 
 prompt = "You are to create a discusion with each of the agents listed once based off what should be prompted to them. You only have " + str(number_of_rounds) + " Rounds of conversation and the last is to be used for the summary agent to sumarise the whole conversaton. The agents and their related prompts should be:\n"
-#'''
+prompt += "The initial prompt you have to answer is " + query + ". And you should follow this rough order\n"
+#with both agent and context
+'''
 for message_pair in plan.steps:
     prompt += ("Agent: " + message_pair.agent_name + " " + "Prompt: " + message_pair.task_prompt + ",\n")
 prompt += "Agent: " + summary_agent.name + " " + "Prompt: Summarise what has been discussed in this groupchat."
+print(prompt)
+'''
+#Just with agent list
+#'''
+for message_pair in plan.steps:
+    prompt += ("Agent: " + message_pair.agent_name + ",\n")
+prompt += "Agent: " + summary_agent.name + " " + "Final Job: Summarise what has been discussed in this groupchat when you feel is right."
 print(prompt)
 #'''
 groupchat = GroupChat(agents=agents_needed, messages=[], max_round=number_of_rounds)
