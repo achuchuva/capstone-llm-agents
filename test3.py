@@ -14,11 +14,38 @@ from autogen import GroupChatManager
 import autogen
 from autogen import register_function
 
-def plan_formatter(plan: str):
+global plan_array#i know global is bad this is just temporaty
+plan_array = []
+
+
+def plan_formatter(new_prompt: str, plan: str):
+   print("The new prompt is")
+   print(new_prompt)
    print("The Plan is")
    print(plan)
    #check if the input is correct. if not return a message telling the LLM to retry otherwise return an array
-   result = "error pls try again"
+   prompt_exists = False
+   result = "error no prompt was given. please try again"#default error message
+   if new_prompt != "":
+      result = "error at least one agent was not found. please try again"#new set error message
+      prompt_exists = True
+   global plan_array
+   plan_array = [new_prompt]
+   global agent_list
+   agent_order = plan.split(",")
+   if prompt_exists == True:#only runs if prompt exists
+      for agent_name in agent_order:#grabs the first agent the llm has picked and then the next etc
+         print(agent_name.strip())
+         agent_found = False
+         for agent in agent_list:#checks if the agent exists and if so apends it to the plan array
+            if agent.name == agent_name.strip():#strip needed to remove blank spaces
+               plan_array.append(agent)
+               agent_found = True
+         if agent_found == False:
+            error = agent_name + " does not exist. please try again."
+            result = error
+            break
+         result = plan_array
    return result
 
 
@@ -42,11 +69,10 @@ user_proxy = autogen.UserProxyAgent(
 planner_agent = ConversableAgent(
     name="planner_agent",
     system_message="""
-    You are to Create a plan for which agents will be needed and in what order they should be called based on a query. The format should look like this when you use the function. DO NOT FORGET TO START WITH A MESSAGE TO THE NEXT AGENT
-    Format to send to the planner_formatter: (Message for the next agent,First agent,Second agent,Third agent,ETC....)
-
-    No other data should be included in this function string only the prompt and a list of each agent you think will help answer the query. Once you have sucesfully returned the array from the formatter function use the call the next agent function.
-    The list of agents curently available are {weather_agent, wikipedia_agent, location_agent, history_agent} Do not call more than what is needed""",  #Should change to a vairable string for agent list to make it easier to change
+    You are to Create a plan for which agents will be needed and in what order they should be called based on a query.
+    Format to send to the plan_formatter is: newprompt: generate a prompt plan: agent1,agent2
+    No other data should be included in this function string only the new prompt and a list of agents.
+    The list of agents curently available are {weather_agent, wikipedia_agent, location_agent, history_agent} Do not call more agents than what is needed""",  #Should change to a vairable string for agent list to make it easier to change
     llm_config=llm_config,
 )
 
@@ -60,7 +86,7 @@ weather_agent = ConversableAgent(
 )
 
 wikipedia_agent = ConversableAgent(
-    name="weather_agent",
+    name="wikipedia_agent",
     system_message="""Your Job is to answer a question based of wikipedia data.
     You can make up data if you need.
     """,
@@ -78,14 +104,18 @@ location_agent = ConversableAgent(
 )
 
 history_agent = ConversableAgent(
-    name="travel_agent",
+    name="history_agent",
     system_message="""Your Job is to answer questions relating to History.
     You can make up data if you need.
     """,
     llm_config=llm_config,
     human_input_mode="NEVER",  # Never ask for human input.
 )
+#print(history_agent.name)
 
+#list of agents
+global agent_list
+agent_list = [weather_agent, wikipedia_agent, location_agent, history_agent]
 # https://microsoft.github.io/autogen/0.2/docs/tutorial/tool-use/
 # Register the calculator function to the two agents.
 register_function(
