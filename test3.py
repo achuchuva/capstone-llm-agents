@@ -56,10 +56,21 @@ def plan_formatter(new_prompt: str, plan: str):
 
 def form_group_chat():
    global plan_array
+   print(plan_array[1].name)
+   print(plan_array)
+   group_chat_agents = []
+   i = 0
    for val in plan_array:
-      print("From formated array")
-      print(val)
-   return "I am the next agent function"
+      if i == 0:
+         prompt = val
+      else:
+         group_chat_agents.append(val)
+      i = (i + 1)
+   print("Prompt")
+   print(prompt)
+   print("Agents for group chat")
+   print(group_chat_agents)
+   return "I Have completed"
 
 
 llm_config = {
