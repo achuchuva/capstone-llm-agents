@@ -28,6 +28,7 @@ llm_config = {
     "api_type": "ollama",
     "temperature": 0.5,
 }
+llm_config2 = {"api_type": "ollama", "model": "gemma3"}
 
 user_proxy = autogen.UserProxyAgent(
    name="User_proxy",
@@ -108,6 +109,6 @@ user_message2 = (
 
 groupchat = GroupChat(agents=[planner_agent, user_proxy], messages=[], max_round=10)
 
-manager = GroupChatManager(groupchat=groupchat, llm_config=llm_config)
+manager = GroupChatManager(groupchat=groupchat, llm_config=llm_config2)
 
 user_proxy.initiate_chat(manager, message=user_message)
