@@ -54,7 +54,7 @@ def plan_formatter(new_prompt: str, plan: str):
    return result
 
 
-def next_agent():
+def form_group_chat():
    global agent_list
    for val in agent_list:
       print("From formated array")
@@ -84,7 +84,7 @@ planner_agent = ConversableAgent(
     system_message="""
     You are to Create a plan for which agents will be needed and in what order they should be called based on a query.
     Format to send to the plan_formatter is: newprompt: generate a prompt plan: agent1,agent2
-    No other data should be included in this function string only the new prompt and a list of agents.
+    No other data should be included in this function string only the new prompt and a list of agents. The plan and new prompt can't be blank.
     The list of agents curently available are {weather_agent, wikipedia_agent, location_agent, history_agent} Do not call more agents than what is needed""",  #Should change to a vairable string for agent list to make it easier to change
     llm_config=llm_config,
 )
@@ -141,11 +141,11 @@ register_function(
 
 '''
 register_function(
-    next_agent,
+    form_group_chat,
     caller=planner_agent,  # The assistant agent can suggest calls to the calculator.
     executor=user_proxy,  # The user proxy agent can execute the calculator calls.
-    name="next_agent",  # By default, the function name is used as the tool name.
-    description="Used to create the next chat",  # A description of the tool.
+    name="form_group_chat",  # By default, the function name is used as the tool name.
+    description="Used to create a groupchat based off the formatted plan",  # A description of the tool.
 )
 '''
 
