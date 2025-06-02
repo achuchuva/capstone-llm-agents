@@ -42,9 +42,14 @@ def plan_formatter(new_prompt: str, plan: str):
                plan_array.append(agent)
                agent_found = True
          if agent_found == False:
-            error = agent_name + " does not exist. please try again."
-            result = error
-            break
+            if agent_name == "":
+               error = "You have forgoten to add an agent. please try again with some agents in the plan and do not add any blank ones."
+               result = error
+               break
+            else:
+               error = agent_name + " does not exist. please try again."
+               result = error
+               break
          result = plan_array
    return result
 
@@ -54,6 +59,7 @@ def next_agent():
    for val in agent_list:
       print("From formated array")
       print(val)
+   return "I am the next agent function"
 
 
 llm_config = {
