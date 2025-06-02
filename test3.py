@@ -180,7 +180,7 @@ user_message = (
     "I want to know what is A horse from wikipedia and if it is raining outside"
 )
 user_message2 = (
-    "I want to know what is A horse from wikipedia and if it is raining outside"
+    "Can you please tell me where pakenham victoria is, what the tempreture is there and what its history is?"
 )
 
 #user_message3 = input("Enter a query here -->")
