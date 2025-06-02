@@ -70,6 +70,10 @@ def form_group_chat():
    print(prompt)
    print("Agents for group chat")
    print(group_chat_agents)
+   #this is an example of how it can be used but i assume it will be done differently with neds comunication
+   groupchat = GroupChat(agents=group_chat_agents, messages=[], max_round=6)
+   manager = GroupChatManager(groupchat=groupchat, llm_config=llm_config2)
+   user_proxy.initiate_chat(manager, message=prompt)
    return "I Have completed"
 
 
