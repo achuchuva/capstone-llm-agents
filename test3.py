@@ -95,6 +95,8 @@ planner_agent = ConversableAgent(
    - Use only the necessary agents.
    - Order the agents in order they should be exicuted
    - The list of currently available agents is: {weather_agent, wikipedia_agent, location_agent, history_agent}
+   - Once an array is returned from the plan_formatter execute just the form group chat
+   - Do not call more than one function at a time
    """,  #Should change to a vairable string for agent list to make it easier to change
     llm_config=llm_config,
 )
