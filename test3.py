@@ -49,6 +49,13 @@ def plan_formatter(new_prompt: str, plan: str):
    return result
 
 
+def next_agent():
+   global agent_list
+   for val in agent_list:
+      print("From formated array")
+      print(val)
+
+
 llm_config = {
     # "model": "gemma3:4b",
     "model": "llama3.2",  # for some reason gemma3 does not have the tools or something to use the functions
@@ -125,6 +132,16 @@ register_function(
     name="plan_formatter",  # By default, the function name is used as the tool name.
     description="Used to format a plan of which agents should talk next and with what prompt",  # A description of the tool.
 )
+
+'''
+register_function(
+    next_agent,
+    caller=planner_agent,  # The assistant agent can suggest calls to the calculator.
+    executor=user_proxy,  # The user proxy agent can execute the calculator calls.
+    name="next_agent",  # By default, the function name is used as the tool name.
+    description="Used to create the next chat",  # A description of the tool.
+)
+'''
 
 user_message = (
     "I want to know what is A horse from wikipedia and if it is raining outside"
