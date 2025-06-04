@@ -22,16 +22,23 @@ app = App()
 # kb
 app.add_capability(FAISSKnowledgeBase(["pdf", "txt"], 1000, 3))
 
+
+simple_comms = SimpleCommunicationInterface()
 # communication interface
-app.add_capability(SimpleCommunicationInterface())
+app.add_capability(simple_comms)
 
 # add tools manager
-tools_manager = AG2ToolsManager(app)
-tools_manager.add_tool(CurrentDateTimeTool())
-tools_manager.add_tool(WeekdayTool())
-tools_manager.add_tool(MathTool())
+defaults_tools = AG2ToolsManager(app)
 
-app.add_capability(tools_manager)
+calendar_tools = AG2ToolsManager(app)
+calendar_tools.add_tool(CurrentDateTimeTool())
+calendar_tools.add_tool(WeekdayTool())
+
+math_tools = AG2ToolsManager(app)
+math_tools.add_tool(MathTool())
+
+
+app.add_capability(defaults_tools)
 
 # memory
 # app.add_capability(Memory())
@@ -48,11 +55,40 @@ app.add_ag2_agent(
     ),
 )
 
-# evil agent
+# math agent
 app.add_ag2_agent(
     ConversableAgent(
-        name="Evil Assistant",
-        system_message="You are an evil assistant.",
+        name="Math Agent",
+        system_message="You are a math expert. You can solve mathematical problems and perform calculations.",
+        llm_config=app.config.get_llm_config(),
+    ),
+    [math_tools, simple_comms],
+)
+
+# writer agent
+app.add_ag2_agent(
+    ConversableAgent(
+        name="Writer Agent",
+        system_message="You are a creative writer.",
+        llm_config=app.config.get_llm_config(),
+    ),
+)
+
+# calendar agent
+app.add_ag2_agent(
+    ConversableAgent(
+        name="Calendar Agent",
+        system_message="You are a calendar management expert. You know about the current date and time, and can help with scheduling.",
+        llm_config=app.config.get_llm_config(),
+    ),
+    [calendar_tools, simple_comms],
+)
+
+# research agent
+app.add_ag2_agent(
+    ConversableAgent(
+        name="Research Agent",
+        system_message="You are a research expert. You can research and summarise documents.",
         llm_config=app.config.get_llm_config(),
     ),
 )
