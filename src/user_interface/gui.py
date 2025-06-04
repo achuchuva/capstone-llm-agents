@@ -3,23 +3,19 @@ import time  # for delay
 import threading
 import pyglet  # for custom font stuff
 from tkinter import filedialog, messagebox
-from capabilities.knowledge_base import Document, Folder
-from core.api import MASAPI
+from capabilities.knowledge_base import Document
+from user_interface.user_interface import UserInterface
 
 
-class UserInterface:
-    """A simple CLI interface for interacting with MASAPI."""
+class GUI(UserInterface):
+    """A simple GUI interface for interacting with MASAPI."""
 
-    def __init__(self, api: MASAPI):
-        self.api = api
+    def __init__(self):
+        super().__init__()
         # tkinter window
         self.root = tk.Tk()
         self.root.title("MAS GUI")
-        # --------------OLD-----------------
         self.root.geometry("800x500")
-        # --------------NEW-----------------
-        self.root.geometry("1600x1000")
-        # -----------------------------------
         self.custom_font = self.load_custom_font(
             "user_interface/fonts/NebulaSans-Medium.ttf", size=16
         )  # just edit if you want a diff font, not certain this is working though
@@ -76,8 +72,7 @@ class UserInterface:
             ("View Chat/Query MAS", self.enter_messaging_mode),
             ("Add Document", self.add_document),
             ("List Documents", self.list_documents),
-            ("Update Folders", self.update_folders),
-            ("Exit", self.root.quit),
+            ("Exit", self.exit),
         ]
         for label, command in buttons:
             button = tk.Button(
@@ -107,7 +102,7 @@ class UserInterface:
 
     # list agents button
     def list_agents(self):
-        agents = self.api.get_agents()
+        agents = self.api.mas_api.get_agents()
         result = (
             "Agents:\n" + "\n".join(f"- {agent.name}" for agent in agents)
             if agents
@@ -122,7 +117,7 @@ class UserInterface:
 
         def fetch_history():
             try:
-                history = self.api.get_chat_history()
+                history = self.api.mas_api.get_chat_history()
                 if history and history.messages:
                     result = "Chat History:\n" + "\n".join(
                         f"- {msg.who}: {msg.content}" for msg in history.messages
@@ -163,9 +158,9 @@ class UserInterface:
         # thread to receive response upon sending query, bit redundant/should make more funcs so less overlap with initial grab
         def query_thread():
             try:
-                self.api.query_mas(query)
+                self.api.mas_api.query_mas(query)
                 time.sleep(1.5)  # Wait for response
-                history = self.api.get_chat_history()
+                history = self.api.mas_api.get_chat_history()
 
                 if history and history.messages:
                     result = "Chat History:\n" + "\n".join(
@@ -193,7 +188,7 @@ class UserInterface:
 
     # add doc button
     def add_document(self):
-        agents = self.api.get_agents()
+        agents = self.api.mas_api.get_agents()
         agent_names = [agent.name for agent in agents]
         if not agent_names:
             messagebox.showerror("Error", "No agents available.")
@@ -231,11 +226,7 @@ class UserInterface:
 
         # choose from file explorer/finder
         def select_file():
-            # ---------------OLD-----------------
-            # path = filedialog.askopenfilename(title="Select Document")
-            # ---------------NEW-----------------
-            path = filedialog.askdirectory(title="Select Folder")
-            # -----------------------------------
+            path = filedialog.askopenfilename(title="Select Document")
             if path:
                 doc_input.delete(0, tk.END)
                 doc_input.insert(0, path)
@@ -258,22 +249,16 @@ class UserInterface:
                 messagebox.showerror("Error", "No document selected.")
                 return
             try:
-                agent = self.api.get_agent(selected_agent)
+                agent = self.api.mas_api.get_agent(selected_agent)
             except KeyError:
                 messagebox.showerror(
                     "Error", f"No agent found with name: {selected_agent}"
                 )
                 return
             extension = doc_path.split(".")[-1]
-            # ---------------OLD-----------------
-            # document = Document(path=doc_path, extension=extension)
-            # self.api.add_document(document, agent)
-            # messagebox.showinfo("Success", "Document added successfully.")
-            # ---------------NEW-----------------
-            folder = Folder(path=doc_path)
-            self.api.add_folder(folder, agent)
-            messagebox.showinfo("Success", "Folder added successfully.")
-            # -----------------------------------
+            document = Document(path=doc_path, extension=extension)
+            self.api.mas_api.add_document(document, agent)
+            messagebox.showinfo("Success", "Document added successfully.")
             add_doc_window.destroy()  # kill window
 
         #  button
@@ -288,7 +273,7 @@ class UserInterface:
 
     # self explanatory, lists docs
     def list_documents(self):
-        docs = self.api.get_documents()
+        docs = self.api.mas_api.get_documents()
         result = (
             "Documents:\n" + "\n".join(f"- {doc.path}" for doc in docs)
             if docs
@@ -296,9 +281,7 @@ class UserInterface:
         )
         self.print_output(result)
 
-    def update_folders(self):
-        folders = self.api.get_folders()
-
-        for folder in folders:
-            for agent in self.api.get_agents():
-                self.api.update_folder(folder, agent)
+    def exit(self):
+        # super exit
+        super().exit()
+        self.root.quit()

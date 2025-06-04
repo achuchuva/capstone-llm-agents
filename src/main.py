@@ -1,27 +1,40 @@
+# NOTE: For now just do what you need to make it work but I will fix it later
 from autogen import ConversableAgent
+
+from dotenv import load_dotenv
+
 from app import App
-from core.capability import Capability
+
+from implementations.memory import Memory
 from implementations.faiss_kb import FAISSKnowledgeBase
+from implementations.communication_interface import SimpleCommunicationInterface
+from implementations.ag2_tools import CurrentDateTimeTool, WeekdayTool, MathTool
+from implementations.ag2_tools_manager import AG2ToolsManager
+
+load_dotenv()
 
 
-default_capabilities: list[Capability] = []
-app = App(default_capabilities)
+app = App()
 
 # Capabilities
 # ============
 
-# add kb
-default_capabilities.append(
-    FAISSKnowledgeBase(
-        ["pdf", "txt", "docx"],
-        1000,
-        3,
-        # ["sprint", "retrospective", "scrum", "burndown", "velocity"],
-        # (
-        #     "This document is related to agile sprint reports and can mention retrospectives, user stories, velocity charts, and burndown trends."
-        # ),
-    )
-)
+# kb
+app.add_capability(FAISSKnowledgeBase(["pdf", "txt"], 1000, 3))
+
+# communication interface
+app.add_capability(SimpleCommunicationInterface())
+
+# add tools manager
+tools_manager = AG2ToolsManager(app)
+tools_manager.add_tool(CurrentDateTimeTool())
+tools_manager.add_tool(WeekdayTool())
+tools_manager.add_tool(MathTool())
+
+app.add_capability(tools_manager)
+
+# memory
+# app.add_capability(Memory())
 
 # Agents
 # ======
@@ -31,22 +44,18 @@ app.add_ag2_agent(
     ConversableAgent(
         name="Assistant",
         system_message="You are a helpful assistant.",
-        llm_config={"api_type": "ollama", "model": "gemma3"},
+        llm_config=app.config.get_llm_config(),
     ),
-    default_capabilities,
 )
 
-# add specialised agent
-# app.add_ag2_agent(
-#     ConversableAgent(
-#         name="Sprint Report Assistant",
-#         system_message="""
-#             You are an assistant that specialises in analysing agile sprint reports and will only answer sprint related queries.
-#             Disregard any other queries politely and inform the user that you can only answer sprint related queries.
-#         """,
-#         llm_config={"api_type": "ollama", "model": "gemma3"},
-#     ),
-#     default_capabilities,
-# )
+# evil agent
+app.add_ag2_agent(
+    ConversableAgent(
+        name="Evil Assistant",
+        system_message="You are an evil assistant.",
+        llm_config=app.config.get_llm_config(),
+    ),
+)
+
 
 app.run()

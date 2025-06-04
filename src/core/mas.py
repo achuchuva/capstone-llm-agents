@@ -1,9 +1,10 @@
 from enum import Enum
 from core.agent import Agent
 from core.chat import ChatHistory, ChatMessage
-from core.query import Query
 from core.entity import HumanUser
 from core.communication_protocol import CommunicationProtocol
+from core.query import Query
+from implementations.communication_protocol import BasicCommunicationProtocol
 
 
 class MASResponse(Enum):
@@ -40,16 +41,34 @@ class MAS:
         # query to ask the user
         self.query_to_ask_user: Query | None = None
 
+    def start(self):
+        """Start the MAS."""
+        # TODO remove this temp
+
+        print("Starting MAS...")
+
+        # load memories of each agent
+        for agent in self.agents.values():
+            agent.capabilties.memory.update_memory_from_chat_history(self.chat_history)
+
+        # TODO hacky
+
+        # bind the user_mas chat history to the MAS chat history
+        if isinstance(self.communication_protocol, BasicCommunicationProtocol):
+            self.communication_protocol.bind_user_space_history(self.chat_history)
+
     def reset_steps(self):
         """Reset the step count."""
         self.step_count = 0
 
     def reset_chat_history(self):
         """Reset the chat history."""
+        print("Resetting chat history...")
         self.chat_history.clear()
 
     def reset(self):
         """Reset the MAS."""
+        print("Resetting MAS...")
         self.reset_steps()
         self.reset_chat_history()
         self.agents = {}
@@ -80,6 +99,15 @@ class MAS:
         # run the next step, executing the query
         self.run_next_step()
 
+        # get last message from chat history
+        last_message = self.chat_history.get_last_message()
+
+        if last_message is None:
+            raise ValueError("No response from MAS after handling prompt.")
+
+        # return the content of the last message
+        return last_message.content
+
     def run_next_step(self) -> MASResponse:
         """Step through the MAS."""
 
@@ -101,7 +129,7 @@ class MAS:
         )
 
         # check if it needs human input (e.g. can't automatically run)
-        if query.who == self.user:
+        if query.recipient == self.user:
             # if it is the user, we need to wait for input
             self.set_query_to_ask_user(query)
 
@@ -116,10 +144,10 @@ class MAS:
             return self.wait_for_user_confirmation()
 
         # get agent from query
-        agent = self.get_agent(query.who.name)
+        agent = self.get_agent(query.recipient.name)
 
         # ask the agent
-        response = agent.handle_query(query)
+        response = self.communication_protocol.handle_query(query)
 
         # add the response to the chat history
         self.chat_history.add_message(response)

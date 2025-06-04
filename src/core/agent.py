@@ -36,12 +36,18 @@ class Agent(Entity):
             query.content
         )
 
+        # relevant tool outputs
+        relevant_tool_outputs = (
+            self.capabilties.tools_manager.get_tool_responses_for_query(query.content)
+        )
+
         new_query = Query(
             query.sender,
             query.recipient,
             query.content,
             relevant_memories,
             relevant_knowledge,
+            relevant_tool_outputs,
         )
 
         # check if the query needs planning
@@ -63,3 +69,8 @@ class Agent(Entity):
     def get_capabilities(self) -> AgentCapabilities:
         """Get the capabilities of the agent."""
         return self.capabilties
+
+    def is_assistant_agent(self) -> bool:
+        """Check if the agent is an assistant agent."""
+        # TODO make this more robust, e.g. by checking the role or capabilities
+        return self.name == "Assistant"

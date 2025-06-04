@@ -86,3 +86,7 @@ class MASAPI:
                 self.documents.remove(doc)
             if doc in self.agent_documents.get(agent.name, []):
                 self.agent_documents[agent.name].remove(doc)
+
+    def set_chat_history(self, chat: ChatHistory):
+        """Set the chat history for the MAS."""
+        self.mas.chat_history = chat

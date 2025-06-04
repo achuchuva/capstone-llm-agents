@@ -22,18 +22,35 @@ class AG2Model(UnderlyingModel):
     def generate(self, query: Query):
         """Generate a response from the AG2 model."""
 
-        sender_agent = self.who_asked(query)
+        # TODO pass in the sender
 
         relevant_memories = query.memories
         relevant_knowledge = query.knowledge
+        relevant_tool_responses = query.tool_responses
 
         context_sections = []
 
+        past_messages = []
+
         if relevant_memories:
-            memory_str = "\n".join(
-                [f"- {memory.content}" for memory in relevant_memories]
-            )
-            context_sections.append(f"Memories:\n{memory_str}")
+            # roles are: "system", "user", "assistant"
+
+            # convert memory e.g. "user: I need help with my homework"
+            # and "agent: I can help you with that"
+            # to { "role": "user", "content": "I need help with my homework" }
+            # and { "role": "assistant", "content": "I can help you with that" }
+
+            for memory in relevant_memories:
+                content = memory.content
+                output = content.split(":", 1)
+                role = output[0].strip() if len(output) > 0 else "user"
+                message_content = output[1].strip() if len(output) > 1 else content
+
+                role = role.strip().lower()
+
+                role = "user" if role == "user" else "assistant"
+
+                past_messages.append({"role": role, "content": message_content})
 
         if relevant_knowledge:
             knowledge_str = "\n".join(
@@ -41,20 +58,38 @@ class AG2Model(UnderlyingModel):
             )
             context_sections.append(f"Knowledge:\n{knowledge_str}")
 
+        if relevant_tool_responses:
+            tool_responses_str = "\n".join(
+                [
+                    f"- {response.tool.name} | Input {response.tool_input.to_string()} | Result: {response.result}"
+                    for response in relevant_tool_responses
+                ]
+            )
+            context_sections.append(f"Tool Responses:\n{tool_responses_str}")
+
         prompt_parts = []
 
         if context_sections:
             prompt_parts.append("The following background context may be helpful:\n")
             prompt_parts.append("\n\n".join(context_sections))
-            prompt_parts.append("\n\nNow answer the following query:\n")
+            prompt_parts.append("Answer the following user's query kindly:\n")
 
         prompt_parts.append(query.content)
         full_prompt = "\n".join(prompt_parts)
 
-        response = sender_agent.initiate_chat(
-            recipient=self.ag2_agent,
-            message={"role": "user", "content": full_prompt},
-            max_turns=1,
+        print(f"Full prompt: {full_prompt}")
+
+        past_messages.append({"role": "user", "content": full_prompt})
+
+        # get the sender agent
+        sender_agent = self.who_asked(query)
+
+        response = self.ag2_agent.generate_reply(
+            messages=past_messages,
+            sender=sender_agent,
         )
 
-        return response.summary
+        if response is None:
+            return ""
+
+        return response["content"]

@@ -178,3 +178,28 @@ config/*.json
 
 # ignore .pdf
 *.pdf
+
+# ignore config.yaml
+config.yaml
+
+# ignore sqlite db
+*.db
+
+# ignore ds store
+.DS_Store
+
+# do not track
+*.pyc
+
+# Ignore binaries and build folders
+bin/
+*.exe
+*.dll
+*.o
+*.so
+*.out
+
+*.bin
+
+# Asistant
+Assistant/
