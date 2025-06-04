@@ -36,8 +36,11 @@ class App:
 
         # mas
         user = HumanUser("User", "The human user of the MAS")
+
+        user_space = UserSpace("User Space", None, user)
+        main_space = MainSpace("Main Space", None, [])
         communication_protocol = BasicCommunicationProtocol(
-            user, UserSpace("User Space", None, user), MainSpace("Main Space", None, [])
+            user, user_space, main_space
         )
         mas = MAS(communication_protocol, user)
 
@@ -45,6 +48,11 @@ class App:
         mas_api = MASAPI(mas)
         storage_api = StorageAPI(self.config.get_db_path())
         space_api = SpaceAPI([], mas)
+
+        # add the spaces
+        space_api.spaces.append(user_space)
+        space_api.spaces.append(main_space)
+
         self.api = AppAPI(mas_api, storage_api, space_api)
 
         # interface dict
