@@ -59,6 +59,9 @@ class SimpleCommunicationInterface(CommunicationInterface):
 
         score = suitability_score.score
 
+        # add some variation betwene -0.1 and 0.1
+        score += random.uniform(-0.1, 0.1)
+
         print(f"Agent {agent.name} scored {score:.2f} for task: {task.description}")
 
         return score
