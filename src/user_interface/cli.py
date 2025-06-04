@@ -1,4 +1,4 @@
-from capabilities.knowledge_base import Document
+from capabilities.knowledge_base import Document, Folder
 import os
 from user_interface.user_interface import UserInterface
 
@@ -14,7 +14,7 @@ class CLI(UserInterface):
             print("2. List Spaces")
             print("3. Query MAS")
             print("4. View Chat History for Space")
-            print("5. Add Document to Agent")
+            print("5. Add Folder Knowledge Base")
             print("6. List Documents")
             print("7. Exit\n")
             choice = input("Enter your choice: ").strip()
@@ -29,7 +29,7 @@ class CLI(UserInterface):
             elif choice == "4":
                 self.view_chat_history()
             elif choice == "5":
-                self.add_document()
+                self.add_folder_kb()
             elif choice == "6":
                 self.list_documents()
             elif choice == "7":
@@ -102,20 +102,11 @@ class CLI(UserInterface):
         for entry in history.messages:
             print(f" - {entry.who}: {entry.content}")
 
-    def add_document(self):
+    def add_folder_kb(self):
         """Add a document to an agent using the original MAS API."""
-        agent_name = input("Enter agent name: ")
-        try:
-            agent = self.api.mas_api.get_agent(agent_name)
-        except KeyError:
-            print(f"No agent found with name: {agent_name}")
-            return
-
-        path = input("Enter document path: ")
-        extension = path.split(".")[-1]
-        document = Document(path=path, extension=extension)
-        self.api.mas_api.add_document(document, agent)
-        print("Document added successfully.")
+        folder_path = input("Enter the path to the folder: ").strip()
+        self.api.mas_api.add_folder_to_all_agents(Folder(folder_path))
+        print("Folder added successfully.")
 
     def list_documents(self):
         """List all documents using the original MAS API."""

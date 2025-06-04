@@ -16,11 +16,13 @@ load_dotenv()
 
 app = App()
 
+kb = FAISSKnowledgeBase(["pdf", "txt"], 1000, 3)
+
 # Capabilities
 # ============
 
 # kb
-app.add_capability(FAISSKnowledgeBase(["pdf", "txt"], 1000, 3))
+app.add_capability(kb)
 
 
 simple_comms = SimpleCommunicationInterface()
@@ -62,7 +64,7 @@ app.add_ag2_agent(
         system_message="You are a math expert. You can solve mathematical problems and perform calculations.",
         llm_config=app.config.get_llm_config(),
     ),
-    [math_tools, simple_comms],
+    [math_tools, simple_comms, kb],
 )
 
 # writer agent
@@ -81,7 +83,7 @@ app.add_ag2_agent(
         system_message="You are a calendar management expert. You know about the current date and time, and can help with scheduling.",
         llm_config=app.config.get_llm_config(),
     ),
-    [calendar_tools, simple_comms],
+    [calendar_tools, simple_comms, kb],
 )
 
 # research agent

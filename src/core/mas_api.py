@@ -39,6 +39,11 @@ class MASAPI:
 
     def query_mas(self, query: str) -> str:
         """Query the MAS with a prompt."""
+
+        # before querying MAS, update the folders
+        for folder in self.folders:
+            self.update_folder_for_all_agents(folder)
+
         return self.mas.handle_prompt_from_user(query)
 
     def get_agents(self) -> list[Agent]:
@@ -86,6 +91,16 @@ class MASAPI:
                 self.documents.remove(doc)
             if doc in self.agent_documents.get(agent.name, []):
                 self.agent_documents[agent.name].remove(doc)
+
+    def update_folder_for_all_agents(self, folder: Folder):
+        """Update a folder of documents for all agents in the MAS."""
+        for agent in self.mas.get_agents():
+            self.update_folder(folder, agent)
+
+    def add_folder_to_all_agents(self, folder: Folder):
+        """Add a folder of documents to all agents in the MAS."""
+        for agent in self.mas.get_agents():
+            self.add_folder(folder, agent)
 
     def set_chat_history(self, chat: ChatHistory):
         """Set the chat history for the MAS."""

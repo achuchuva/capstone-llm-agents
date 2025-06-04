@@ -161,6 +161,12 @@ class FAISSKnowledgeBase(KnowledgeBase):
         ingested_documents = []
 
         for document in documents:
+
+            # if we already have it skip it
+            if any(doc["path"] == document.path for doc in self.documents):
+                # print(f"[INFO] Document {document.path} already ingested, skipping.")
+                continue
+
             try:
                 ingested = self.ingest_document(document)
             except Exception as e:
